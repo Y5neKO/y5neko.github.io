@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Y0lay | Full-Stack Developer</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -32,8 +32,6 @@
     <ul class="nav-links">
       <li><a href="#home">// 首页</a></li>
       <li><a href="#about">// 关于</a></li>
-      <li><a href="#skills">// 技能</a></li>
-      <li><a href="#projects">// 项目</a></li>
       <li><a href="#contact">// 联系</a></li>
     </ul>
     <button class="nav-toggle" id="nav-toggle" aria-label="菜单">☰</button>
@@ -43,7 +41,7 @@
   <header class="hero" id="home">
     <div class="hero-inner">
       <div class="avatar-ring">
-        <img class="avatar" src="avatar.jpg" alt="头像">
+        <img class="avatar" src="images/avatar.jpg" alt="头像">
       </div>
 
       <h1 class="hero-title glitch" data-text="Hello World_">Hello World_</h1>
@@ -67,7 +65,7 @@
       </div>
 
       <div class="hero-btns">
-        <a href="#projects" class="btn btn-primary">查看项目 →</a>
+        <a href="#about" class="btn btn-primary">关于我 →</a>
         <a href="#contact" class="btn btn-ghost">联系方式</a>
       </div>
     </div>
@@ -101,68 +99,6 @@
       </div>
     </section>
 
-    <!-- 技能 -->
-    <section class="section" id="skills">
-      <h2 class="section-title"><span class="tag">&lt;skills&gt;</span> 技术栈 <span class="tag">&lt;/skills&gt;</span></h2>
-      <div class="skills-grid">
-        <div class="skill reveal">
-          <div class="skill-head"><span>JavaScript / TypeScript</span><span class="skill-pct">90%</span></div>
-          <div class="skill-bar"><div class="skill-fill fill-pink" data-width="90"></div></div>
-        </div>
-        <div class="skill reveal">
-          <div class="skill-head"><span>Python</span><span class="skill-pct">85%</span></div>
-          <div class="skill-bar"><div class="skill-fill fill-cyan" data-width="85"></div></div>
-        </div>
-        <div class="skill reveal">
-          <div class="skill-head"><span>Java</span><span class="skill-pct">80%</span></div>
-          <div class="skill-bar"><div class="skill-fill fill-purple" data-width="80"></div></div>
-        </div>
-        <div class="skill reveal">
-          <div class="skill-head"><span>HTML / CSS</span><span class="skill-pct">88%</span></div>
-          <div class="skill-bar"><div class="skill-fill fill-pink" data-width="88"></div></div>
-        </div>
-        <div class="skill reveal">
-          <div class="skill-head"><span>Web 安全</span><span class="skill-pct">75%</span></div>
-          <div class="skill-bar"><div class="skill-fill fill-cyan" data-width="75"></div></div>
-        </div>
-        <div class="skill reveal">
-          <div class="skill-head"><span>Linux / DevOps</span><span class="skill-pct">78%</span></div>
-          <div class="skill-bar"><div class="skill-fill fill-gold" data-width="78"></div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 项目 -->
-    <section class="section" id="projects">
-      <h2 class="section-title"><span class="tag">&lt;projects&gt;</span> 项目 <span class="tag">&lt;/projects&gt;</span></h2>
-      <div class="projects-grid">
-        <article class="card project-card reveal">
-          <div class="project-icon">[01]</div>
-          <h3>Static Blog Engine</h3>
-          <p>Markdown 静态博客引擎,支持代码高亮、增量构建与全文检索。</p>
-          <div class="tags"><span>Vue3</span><span>Vite</span><span>Node</span></div>
-        </article>
-        <article class="card project-card reveal">
-          <div class="project-icon">[02]</div>
-          <h3>CI Notify Bot</h3>
-          <p>基于 WebHook 的构建通知机器人,聚合 CI 状态、告警与值班提醒。</p>
-          <div class="tags"><span>Python</span><span>WebHook</span></div>
-        </article>
-        <article class="card project-card reveal">
-          <div class="project-icon">[03]</div>
-          <h3>SecScan Kit</h3>
-          <p>轻量级 Web 漏洞扫描工具箱,专注授权渗透测试场景。</p>
-          <div class="tags"><span>Go</span><span>Security</span></div>
-        </article>
-        <article class="card project-card reveal">
-          <div class="project-icon">[04]</div>
-          <h3>Pixel Dungeon JS</h3>
-          <p>纯 Canvas 实现的像素风 Roguelike,零依赖,浏览器直接运行。</p>
-          <div class="tags"><span>Canvas</span><span>JS</span></div>
-        </article>
-      </div>
-    </section>
-
     <!-- 联系 -->
     <section class="section" id="contact">
       <h2 class="section-title"><span class="tag">&lt;contact&gt;</span> 联系 <span class="tag">&lt;/contact&gt;</span></h2>
@@ -176,13 +112,13 @@
         </div>
         <p class="hint">// 提示:终端支持 ls -a</p>
       </div>
+
+      <footer class="footer">
+        <p>© 2026 Y0lay · Powered by <span class="accent">HTML / CSS / JS</span>,无框架无依赖</p>
+        <p class="footer-code">while (alive) { eat(); sleep(); code(); }</p>
+      </footer>
     </section>
   </main>
-
-  <footer class="footer">
-    <p>© 2026 Y0lay · Powered by <span class="accent">HTML / CSS / JS</span>,无框架无依赖</p>
-    <p class="footer-code">while (alive) { eat(); sleep(); code(); }</p>
-  </footer>
 
   <!-- 彩蛋弹窗 -->
   <div id="easter-egg" class="easter-egg hidden">
@@ -193,6 +129,6 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="js/script.js"></script>
 </body>
 </html>

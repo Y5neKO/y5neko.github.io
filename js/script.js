@@ -164,8 +164,6 @@
       print('  ls [-a]     列出文件');
       print('  cat <file>  查看文件内容');
       print('  about       跳转到 #about');
-      print('  skills      跳转到 #skills');
-      print('  projects    跳转到 #projects');
       print('  contact     跳转到 #contact');
       print('  echo <msg>  复读机');
       print('  date        现在几点了');
@@ -208,8 +206,6 @@
       print('cd: 前端模拟终端,无实际文件系统', 'out-dim');
     },
     about() { print('scrolling to #about ...', 'out-dim'); scrollToSection('about'); },
-    skills() { print('scrolling to #skills ...', 'out-dim'); scrollToSection('skills'); },
-    projects() { print('scrolling to #projects ...', 'out-dim'); scrollToSection('projects'); },
     contact() { print('scrolling to #contact ...', 'out-dim'); scrollToSection('contact'); },
     echo(args) { print(esc(args.join(' ')) || ''); },
     date() {
@@ -311,11 +307,6 @@
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
       entry.target.classList.add('visible');
-
-      // 技能条填充
-      entry.target.querySelectorAll('.skill-fill').forEach((bar) => {
-        bar.style.width = bar.dataset.width + '%';
-      });
 
       // 数字滚动
       entry.target.querySelectorAll('.stat-num').forEach((num) => {

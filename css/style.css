@@ -32,7 +32,11 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* 整页翻页滚动:每次滚动吸附到一屏 */
+  scroll-snap-type: y mandatory;
+}
 
 body {
   background: var(--bg);
@@ -50,10 +54,7 @@ body {
 #term-input,
 .code-block,
 .tag,
-.project-icon,
-.tags span,
 .stat-num,
-.skill-pct,
 .hint,
 .footer-code,
 .easter-face,
@@ -289,6 +290,8 @@ body::after {
   text-align: center;
   padding: 7rem 5vw 3rem;
   position: relative;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 /* 头像:方形档案照 + 四角瞄准框 */
@@ -521,11 +524,17 @@ body::after {
 
 @keyframes bob { 50% { transform: translateY(6px); } }
 
-/* ---------- 通用 section ---------- */
+/* ---------- 通用 section:每个区块占满一屏并吸附 ---------- */
 .section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   max-width: 1080px;
   margin: 0 auto;
-  padding: 5rem 5vw 2rem;
+  padding: 6rem 5vw 2rem;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 /* 标题:左侧警示黄短竖条 + 大写字距 */
@@ -657,83 +666,6 @@ body::after {
 
 .stat-label { font-size: 0.78rem; color: var(--text-dim); letter-spacing: 1px; }
 
-/* ---------- 技能 ---------- */
-.skills-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem 2.5rem;
-}
-
-.skill-head {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-  margin-bottom: 0.5rem;
-}
-
-.skill-pct { color: var(--text-dim); }
-
-/* 弹药计量条:直角细槽 */
-.skill-bar {
-  height: 8px;
-  background: var(--glass);
-  border: 1px solid var(--line);
-  overflow: hidden;
-}
-
-.skill-fill {
-  height: 100%;
-  width: 0;
-  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-  /* 弹匣刻度纹理 */
-  background-image: repeating-linear-gradient(
-    -45deg,
-    rgba(0, 0, 0, 0.25) 0 4px,
-    transparent 4px 8px
-  );
-}
-
-/* 类名沿用旧调色板,统一映射为废土色阶 */
-.fill-pink { background-color: var(--accent); }
-.fill-cyan { background-color: #c9c7ba; }
-.fill-purple { background-color: #8e8d82; }
-.fill-gold { background-color: var(--accent); }
-
-/* ---------- 项目 ---------- */
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1.4rem;
-}
-
-.project-icon {
-  font-size: 0.85rem;
-  color: var(--accent);
-  letter-spacing: 3px;
-  margin-bottom: 0.7rem;
-}
-
-.project-card h3 {
-  color: var(--text);
-  letter-spacing: 1px;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-}
-
-.project-card p { font-size: 0.85rem; color: var(--text-dim); }
-
-.tags { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
-
-.tags span {
-  font-size: 0.7rem;
-  letter-spacing: 1px;
-  padding: 0.18rem 0.7rem;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text-dim);
-}
-
 /* ---------- 联系 ---------- */
 .contact-box { text-align: center; }
 
@@ -743,14 +675,17 @@ body::after {
 
 .hint { margin-top: 1.6rem; font-size: 0.75rem; letter-spacing: 1px; color: var(--text-dim); }
 
-/* ---------- 页脚 ---------- */
+/* ---------- 页脚(位于联系页底部) ---------- */
+#contact .section-title { margin-top: auto; }
+
 .footer {
+  width: 100%;
+  margin-top: auto;
   text-align: center;
-  padding: 3rem 5vw 2rem;
+  padding: 2rem 5vw 1.6rem;
   color: var(--text-dim);
   font-size: 0.82rem;
   border-top: 1px solid var(--line);
-  margin-top: 3rem;
   position: relative;
 }
 
@@ -963,10 +898,12 @@ html.glitching .navbar {
 
   .nav-toggle { display: block; }
 
-  .about-grid,
-  .skills-grid { grid-template-columns: 1fr; }
+  .about-grid { grid-template-columns: 1fr; }
 
   .terminal-body { height: 280px; }
+
+  /* 小屏内容可能超过一屏,翻页吸附易卡顿,退回自由滚动 */
+  html { scroll-snap-type: none; }
 
   body::after,
   #syslog,
