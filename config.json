@@ -1,0 +1,41 @@
+{
+  "_readme": [
+    "特效开关配置:true 开启 / false 关闭;删除某项则按默认值(开启)运行",
+    "scanlines        常驻 CRT 扫描线",
+    "noise            电视噪点",
+    "scanbeam         缓慢下移的扫光带",
+    "glitchBursts     全屏随机故障爆发(色散/失同步/宏块崩坏三种变体)",
+    "textCorruption   全局文字乱码闪烁",
+    "glitchTitle      标题与 logo 的品红/青双通道色散错位",
+    "dust             漂浮尘埃粒子",
+    "syslog           左下角系统日志流",
+    "radar            右下角雷达扫描",
+    "avatarGlitch     头像故障切片(随机 + hover 触发)",
+    "titleDecode      章节标题乱码解码入场",
+    "btnScramble      按钮 hover 文字乱码",
+    "projSwitchGlitch 项目切换撕裂过渡",
+    "previewRgbSplit  项目预览图 hover RGB 通道分离",
+    "statScramble     统计数字滚动乱码帧",
+    "crtModal         弹窗 CRT 开机动画(关闭则回退普通弹出)",
+    "snapBurst        整页翻页落定时触发微故障"
+  ],
+  "effects": {
+    "scanlines": true,
+    "noise": true,
+    "scanbeam": true,
+    "glitchBursts": true,
+    "textCorruption": false,
+    "glitchTitle": true,
+    "dust": true,
+    "syslog": true,
+    "radar": true,
+    "avatarGlitch": true,
+    "titleDecode": true,
+    "btnScramble": true,
+    "projSwitchGlitch": true,
+    "previewRgbSplit": true,
+    "statScramble": true,
+    "crtModal": true,
+    "snapBurst": true
+  }
+}

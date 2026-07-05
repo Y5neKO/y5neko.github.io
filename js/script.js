@@ -1,11 +1,79 @@
 /* ==========================================================
    Y5neKO 个人主页脚本
-   监控站背景 / 可交互终端 / 滚动渐入 / 故障特效 / 文字乱码 / 隐藏指令
+   特效配置 / 监控站背景 / 可交互终端 / 滚动渐入 / 故障特效 / 隐藏指令
    ========================================================== */
 
+// ---------- 0. 特效配置:config.json 独立开关每个特效 ----------
+// 默认全开;config.json 加载失败(如 file:// 直开)时按默认值运行
+const FX = {
+  scanlines: true,        // 常驻 CRT 扫描线
+  noise: true,            // 电视噪点
+  scanbeam: true,         // 缓慢下移扫光带
+  glitchBursts: true,     // 全屏随机故障爆发(三种变体)
+  textCorruption: true,   // 全局文字乱码闪烁
+  glitchTitle: true,      // 标题/logo 双通道色散错位
+  dust: true,             // 漂浮尘埃粒子
+  syslog: true,           // 左下系统日志流
+  radar: true,            // 右下雷达扫描
+  avatarGlitch: true,     // 头像故障切片
+  titleDecode: true,      // 章节标题乱码解码入场
+  btnScramble: true,      // 按钮 hover 文字乱码
+  projSwitchGlitch: true, // 项目切换撕裂过渡
+  previewRgbSplit: true,  // 预览图 hover RGB 通道分离
+  statScramble: true,     // 统计数字滚动乱码帧
+  crtModal: true,         // 弹窗 CRT 开机动画
+  snapBurst: true,        // 翻页切换时触发微故障
+};
+
+// 特效间共享:乱码字符集 / 正在乱码中的文本节点(防互相踩)
+const GLYPHS = '█▓▒░#$%&@*+=?<>/\\|~^!¥§アイウエオカキクケコ0123456789';
+const busyNodes = new WeakSet();
+const gfxApi = {}; // glitchFx 暴露的手动触发接口
+
+function randGlyph() {
+  return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+}
+
+// 把 original 中 [start, end) 区间替换为随机乱码(保留空白,维持排版)
+function scrambled(original, start, end) {
+  let out = original.slice(0, start);
+  for (let i = start; i < end; i++) {
+    const ch = original[i];
+    out += /\s/.test(ch) ? ch : randGlyph();
+  }
+  return out + original.slice(end);
+}
+
+const fxReady = fetch('config.json', { cache: 'no-store' })
+  .then((r) => (r.ok ? r.json() : null))
+  .catch(() => null)
+  .then((cfg) => {
+    const user = cfg && cfg.effects;
+    if (user) {
+      Object.keys(FX).forEach((k) => {
+        if (typeof user[k] === 'boolean') FX[k] = user[k];
+      });
+    }
+    // 关闭项挂 fx-off-* 类到 <html>,纯 CSS 特效由此关断
+    Object.keys(FX).forEach((k) => {
+      if (!FX[k]) {
+        document.documentElement.classList.add(
+          'fx-off-' + k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase())
+        );
+      }
+    });
+    return FX;
+  });
+
 // ---------- 1. 背景:尘埃粒子 / 系统日志流 / 雷达扫描 ----------
-(function wastelandBg() {
+(function monitorBg() {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  fxReady.then(() => {
+    if (FX.dust) initDust();
+    if (FX.syslog && !reduced) logLine();
+    if (FX.radar && !reduced) blip();
+  });
 
   // -- 漂浮尘埃(灰烬) --
   const canvas = document.getElementById('dust-canvas');
@@ -32,8 +100,11 @@
     parts = Array.from({ length: Math.floor((W * H) / 16000) }, makePart);
   }
 
-  resize();
-  window.addEventListener('resize', resize);
+  function initDust() {
+    resize();
+    window.addEventListener('resize', resize);
+    frame(); // 减少动态效果时也保留一帧静态尘埃
+  }
 
   function frame() {
     ctx.clearRect(0, 0, W, H);
@@ -50,8 +121,6 @@
     ctx.globalAlpha = 1;
     if (!reduced) requestAnimationFrame(frame);
   }
-
-  frame(); // 减少动态效果时也保留一帧静态尘埃
 
   // -- 滚动系统日志流 --
   const syslog = document.getElementById('syslog');
@@ -89,8 +158,6 @@
     setTimeout(logLine, 900 + Math.random() * 1100);
   }
 
-  if (!reduced) logLine();
-
   // -- 雷达目标点 --
   const radar = document.getElementById('radar');
 
@@ -105,8 +172,6 @@
     setTimeout(() => dot.remove(), 3000);
     setTimeout(blip, 1800 + Math.random() * 3200);
   }
-
-  if (!reduced) blip();
 })();
 
 // ---------- 2. 可交互模拟终端 ----------
@@ -317,7 +382,13 @@
         const start = performance.now();
         (function step(now) {
           const p = Math.min((now - start) / duration, 1);
-          num.textContent = Math.floor(target * (1 - Math.pow(1 - p, 3)));
+          const val = Math.floor(target * (1 - Math.pow(1 - p, 3)));
+          // 滚动途中偶尔闪一帧乱码,结束帧必为准确值
+          if (FX.statScramble && p < 1 && Math.random() < 0.18) {
+            num.textContent = String(val).replace(/./g, randGlyph);
+          } else {
+            num.textContent = val;
+          }
           if (p < 1) requestAnimationFrame(step);
         })(start);
       });
@@ -335,9 +406,17 @@
   const panels = document.querySelectorAll('.proj-panel');
   if (!items.length) return;
 
+  const detail = document.querySelector('.proj-detail');
+
   function select(key) {
     items.forEach((it) => it.classList.toggle('is-active', it.dataset.proj === key));
     panels.forEach((p) => p.classList.toggle('is-active', p.dataset.proj === key));
+    // 撕裂过渡:先摘掉类再重挂,保证连续点击也能重启动画
+    if (FX.projSwitchGlitch && detail) {
+      detail.classList.remove('switching');
+      void detail.offsetWidth;
+      detail.classList.add('switching');
+    }
   }
 
   items.forEach((it) => {
@@ -460,11 +539,17 @@
 
   // 区块跨过视口中线即视为当前模块;用窄带而非阈值,
   // 区块高于一屏(移动端)时也能正确命中
+  let current = null;
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
+      const link = map.get(entry.target);
+      if (link === current) return;
       links.forEach((a) => a.classList.remove('is-active'));
-      map.get(entry.target).classList.add('is-active');
+      link.classList.add('is-active');
+      // 翻页落定时的微故障(首次进入页面不触发)
+      if (current && FX.snapBurst && gfxApi.flash) gfxApi.flash();
+      current = link;
     });
   }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
 
@@ -540,7 +625,20 @@
     setTimeout(burst, 2600 + Math.random() * 5400);
   }
 
-  schedule();
+  // 轻量单次爆发:供翻页微故障等外部触发,不进入自调度循环
+  gfxApi.flash = function flash() {
+    bands.forEach((b) => {
+      b.style.top = Math.random() * 100 + '%';
+      b.style.height = 4 + Math.random() * 30 + 'px';
+      b.style.setProperty('--shift', (Math.random() * 14 - 7).toFixed(1) + 'px');
+    });
+    root.classList.add('glitching');
+    setTimeout(() => root.classList.remove('glitching'), 320);
+  };
+
+  fxReady.then(() => {
+    if (FX.glitchBursts) schedule();
+  });
 })();
 
 // ---------- 10. 全局文字乱码闪烁 ----------
@@ -549,13 +647,8 @@
 (function textCorruption() {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  const GLYPHS = '█▓▒░#$%&@*+=?<>/\\|~^!¥§アイウエオカキクケコ0123456789';
   const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT']);
-  const busy = new WeakSet(); // 正在乱码中的节点,防止重复处理
-
-  function randGlyph() {
-    return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
-  }
+  const busy = busyNodes; // 与标题解码/按钮乱码共享,防互相改写
 
   // 收集当前可见的、长度够的文本节点
   function collectNodes() {
@@ -573,16 +666,6 @@
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
     return nodes;
-  }
-
-  // 把 original 中 [start, end) 区间替换为随机乱码(保留空白字符,维持排版)
-  function scrambled(original, start, end) {
-    let out = original.slice(0, start);
-    for (let i = start; i < end; i++) {
-      const ch = original[i];
-      out += /\s/.test(ch) ? ch : randGlyph();
-    }
-    return out + original.slice(end);
   }
 
   function corruptOne(node) {
@@ -621,10 +704,122 @@
     setTimeout(burst, 500 + Math.random() * 1300);
   }
 
-  schedule();
+  fxReady.then(() => {
+    if (FX.textCorruption) schedule();
+  });
 })();
 
-// ---------- 11. 控制台招呼(程序员的仪式感) ----------
+// ---------- 11. 头像故障切片 ----------
+// 品红/青幽灵层随机错位闪现,像信号受扰的档案照;hover 也触发
+(function avatarGlitch() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const ring = document.querySelector('.avatar-ring');
+  const img = ring && ring.querySelector('.avatar');
+  if (!img) return;
+
+  let cooling = false;
+
+  function trigger() {
+    if (cooling) return;
+    cooling = true;
+    ring.classList.add('is-glitching');
+    setTimeout(() => {
+      ring.classList.remove('is-glitching');
+      cooling = false;
+    }, 480);
+  }
+
+  fxReady.then(() => {
+    if (!FX.avatarGlitch) return;
+    ['r', 'c'].forEach((k) => {
+      const ghost = img.cloneNode();
+      ghost.className = 'avatar-ghost avatar-ghost-' + k;
+      ghost.setAttribute('aria-hidden', 'true');
+      ring.appendChild(ghost);
+    });
+    ring.addEventListener('mouseenter', trigger);
+    (function loop() {
+      trigger();
+      setTimeout(loop, 3200 + Math.random() * 5200);
+    })();
+  });
+})();
+
+// ---------- 12. 章节标题解码入场 ----------
+// 滚入视口时标题从乱码逐段解码为正文,只处理直属文本节点,不碰 <tag> 装饰
+(function titleDecode() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  function decode(node) {
+    const original = node.nodeValue;
+    const len = original.length;
+    let resolved = 0;
+    busyNodes.add(node);
+    const timer = setInterval(() => {
+      resolved += Math.max(1, Math.round(len / 10));
+      if (resolved >= len) {
+        clearInterval(timer);
+        node.nodeValue = original;
+        busyNodes.delete(node);
+      } else {
+        node.nodeValue = scrambled(original, resolved, len);
+      }
+    }, 55);
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      [...entry.target.childNodes]
+        .filter((n) => n.nodeType === Node.TEXT_NODE
+          && n.nodeValue.trim().length >= 2
+          && !busyNodes.has(n))
+        .forEach(decode);
+      observer.unobserve(entry.target); // 每个标题只解码一次
+    });
+  }, { threshold: 0.6 });
+
+  fxReady.then(() => {
+    if (!FX.titleDecode) return;
+    document.querySelectorAll('.section-title').forEach((t) => observer.observe(t));
+  });
+})();
+
+// ---------- 13. 按钮 hover 文字乱码 ----------
+// 事件委托,悬浮窗内克隆出来的按钮同样生效
+(function btnScramble() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  function scrambleText(el) {
+    const node = [...el.childNodes].find(
+      (n) => n.nodeType === Node.TEXT_NODE && n.nodeValue.trim().length >= 2
+    );
+    if (!node || busyNodes.has(node)) return;
+    const original = node.nodeValue;
+    busyNodes.add(node);
+    let frames = 3;
+    const timer = setInterval(() => {
+      if (frames-- > 0) {
+        node.nodeValue = scrambled(original, 0, original.length);
+      } else {
+        clearInterval(timer);
+        node.nodeValue = original;
+        busyNodes.delete(node);
+      }
+    }, 60);
+  }
+
+  document.addEventListener('mouseover', (e) => {
+    if (!FX.btnScramble) return;
+    const btn = e.target.closest('.btn');
+    // relatedTarget 仍在按钮内说明只是内部移动,不重复触发
+    if (!btn || (e.relatedTarget && btn.contains(e.relatedTarget))) return;
+    scrambleText(btn);
+  });
+})();
+
+// ---------- 14. 控制台招呼(程序员的仪式感) ----------
 console.log(
   '%cY5NEKO TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
   'color:#050508;background:#00f0ff;font-size:14px;font-weight:bold;padding:2px 8px;',
