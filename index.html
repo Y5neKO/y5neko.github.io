@@ -32,6 +32,7 @@
     <ul class="nav-links">
       <li><a href="#home">// 首页</a></li>
       <li><a href="#about">// 关于</a></li>
+      <li><a href="#projects">// 项目</a></li>
       <li><a href="#contact">// 联系</a></li>
     </ul>
     <button class="nav-toggle" id="nav-toggle" aria-label="菜单">☰</button>
@@ -99,6 +100,120 @@
       </div>
     </section>
 
+    <!-- 项目 -->
+    <section class="section" id="projects">
+      <h2 class="section-title"><span class="tag">&lt;projects&gt;</span> 项目 <span class="tag">&lt;/projects&gt;</span></h2>
+      <div class="proj reveal">
+        <!-- 左侧:项目索引 -->
+        <ul class="proj-list" role="tablist">
+          <li class="proj-item is-active" data-proj="shiroexp" role="tab" tabindex="0">
+            <span class="proj-idx">01</span>
+            <span class="proj-name">ShiroEXP</span>
+            <span class="proj-lang">Java</span>
+          </li>
+          <li class="proj-item" data-proj="closure" role="tab" tabindex="0">
+            <span class="proj-idx">02</span>
+            <span class="proj-name">ClosureVulnScanner</span>
+            <span class="proj-lang">Python</span>
+          </li>
+          <li class="proj-item" data-proj="mon3tr" role="tab" tabindex="0">
+            <span class="proj-idx">03</span>
+            <span class="proj-name">Mon3trProject</span>
+            <span class="proj-lang">Python</span>
+          </li>
+        </ul>
+
+        <!-- 右侧:项目详情 -->
+        <div class="proj-detail card">
+          <!-- ShiroEXP -->
+          <article class="proj-panel is-active" data-proj="shiroexp">
+            <div class="proj-preview">
+              <img src="images/shiroexp.png" alt="ShiroEXP 界面预览" loading="lazy">
+            </div>
+            <div class="proj-info">
+              <div class="proj-head">
+                <h3>ShiroEXP</h3>
+                <span class="proj-star" data-repo="Y5neKO/ShiroEXP">★ <span class="star-num">…</span></span>
+              </div>
+              <div class="proj-body">
+                <p class="proj-desc">Shiro漏洞综合利用工具</p>
+                <ul class="proj-features">
+                  <li>爆破rememberMe</li>
+                  <li>漏洞探测(Shiro550、Shiro721)</li>
+                  <li>探测回显链</li>
+                  <li>探测依赖（FindClassByURLDNS、FindClassByBomb）</li>
+                  <li>命令执行</li>
+                  <li>注入内存马</li>
+                  <li>全局代理</li>
+                </ul>
+                <div class="proj-tags">
+                  <span>Java</span><span>JDK 8u431</span>
+                </div>
+              </div>
+              <div class="proj-actions">
+                <button class="btn btn-ghost proj-more">完整介绍</button>
+                <a class="btn btn-primary" href="https://github.com/Y5neKO/ShiroEXP" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- ClosureVulnScanner -->
+          <article class="proj-panel" data-proj="closure">
+            <div class="proj-preview">
+              <img src="images/closure.png" alt="ClosureVulnScanner 图标" loading="lazy">
+            </div>
+            <div class="proj-info">
+              <div class="proj-head">
+                <h3>CVS - ClosureVulnScanner</h3>
+                <span class="proj-star" data-repo="Y5neKO/ClosureVulnScanner">★ <span class="star-num">…</span></span>
+              </div>
+              <div class="proj-body">
+                <p class="proj-desc">基于Python的Web综合漏洞扫描器,名字取自 Arknights® Closure</p>
+                <ul class="proj-features">
+                  <li>v0.1:实现了基础功能，包括指纹、exp、poc、多线程以及代理等功能</li>
+                  <li>v0.2:重构了代码结构，优化多线程算法，修复了部分bug</li>
+                </ul>
+                <div class="proj-tags">
+                  <span>Python 3.8.0</span><span>Arknights</span>
+                </div>
+              </div>
+              <div class="proj-actions">
+                <button class="btn btn-ghost proj-more">完整介绍</button>
+                <a class="btn btn-primary" href="https://github.com/Y5neKO/ClosureVulnScanner" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- Mon3trProject -->
+          <article class="proj-panel" data-proj="mon3tr">
+            <div class="proj-preview">
+              <img src="images/mon3tr.png" alt="Mon3trProject 界面预览" loading="lazy">
+            </div>
+            <div class="proj-info">
+              <div class="proj-head">
+                <h3>Mon3trProject</h3>
+                <span class="proj-star" data-repo="Y5neKO/Mon3trProject">★ <span class="star-num">…</span></span>
+              </div>
+              <div class="proj-body">
+                <p class="proj-desc">Mon3tr流量加密客户端,名字取自 Arknights® Mon3tr</p>
+                <ul class="proj-features">
+                  <li>Webshell Management Client,目前仅用作个人用途，因此开发方向主观性较强，且代码比较随意(菜)，欢迎大佬们提Issue或者pull完善算法</li>
+                  <li>v0.2:当前仅支持php，新增二级混淆模板，进一步提升了混淆效果，目前能过几乎所有静态查杀；新增shell模式，优化命令执行效率</li>
+                </ul>
+                <div class="proj-tags">
+                  <span>Python 3.8.10</span><span>PHP</span><span>Arknights</span>
+                </div>
+              </div>
+              <div class="proj-actions">
+                <button class="btn btn-ghost proj-more">完整介绍</button>
+                <a class="btn btn-primary" href="https://github.com/Y5neKO/Mon3trProject" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <!-- 联系 -->
     <section class="section" id="contact">
       <h2 class="section-title"><span class="tag">&lt;contact&gt;</span> 联系 <span class="tag">&lt;/contact&gt;</span></h2>
@@ -119,6 +234,17 @@
       </footer>
     </section>
   </main>
+
+  <!-- 项目完整介绍悬浮窗 -->
+  <div id="proj-modal" class="proj-modal hidden">
+    <div class="proj-modal-inner">
+      <div class="proj-modal-bar">
+        <span class="proj-modal-title">PROJECT DETAIL</span>
+        <button class="proj-modal-close" id="proj-modal-close" aria-label="关闭">×</button>
+      </div>
+      <div class="proj-modal-body" id="proj-modal-body"></div>
+    </div>
+  </div>
 
   <!-- 彩蛋弹窗 -->
   <div id="easter-egg" class="easter-egg hidden">

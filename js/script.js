@@ -164,6 +164,7 @@
       print('  ls [-a]     列出文件');
       print('  cat <file>  查看文件内容');
       print('  about       跳转到 #about');
+      print('  projects    跳转到 #projects');
       print('  contact     跳转到 #contact');
       print('  echo <msg>  复读机');
       print('  date        现在几点了');
@@ -206,6 +207,7 @@
       print('cd: 前端模拟终端,无实际文件系统', 'out-dim');
     },
     about() { print('scrolling to #about ...', 'out-dim'); scrollToSection('about'); },
+    projects() { print('scrolling to #projects ...', 'out-dim'); scrollToSection('projects'); },
     contact() { print('scrolling to #contact ...', 'out-dim'); scrollToSection('contact'); },
     echo(args) { print(esc(args.join(' ')) || ''); },
     date() {
@@ -301,7 +303,7 @@
   print('');
 })();
 
-// ---------- 3. 滚动渐入 + 技能条 + 数字滚动 ----------
+// ---------- 3. 滚动渐入 + 数字滚动 ----------
 (function scrollEffects() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -327,7 +329,103 @@
   document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 })();
 
-// ---------- 4. 移动端菜单 ----------
+// ---------- 4. 项目切换(左索引 ↔ 右详情) ----------
+(function projectSwitch() {
+  const items = document.querySelectorAll('.proj-item');
+  const panels = document.querySelectorAll('.proj-panel');
+  if (!items.length) return;
+
+  function select(key) {
+    items.forEach((it) => it.classList.toggle('is-active', it.dataset.proj === key));
+    panels.forEach((p) => p.classList.toggle('is-active', p.dataset.proj === key));
+  }
+
+  items.forEach((it) => {
+    it.addEventListener('click', () => select(it.dataset.proj));
+    it.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(it.dataset.proj); }
+    });
+  });
+
+  // 「完整介绍」→ 克隆当前面板的标题与正文到悬浮窗
+  const modal = document.getElementById('proj-modal');
+  const modalBody = document.getElementById('proj-modal-body');
+  const modalClose = document.getElementById('proj-modal-close');
+
+  function openModal(panel) {
+    const head = panel.querySelector('.proj-head');
+    const body = panel.querySelector('.proj-body');
+    modalBody.innerHTML = '';
+    if (head) modalBody.appendChild(head.cloneNode(true));
+    if (body) modalBody.appendChild(body.cloneNode(true));
+    modal.classList.remove('hidden');
+  }
+
+  function closeModal() { modal.classList.add('hidden'); }
+
+  panels.forEach((panel) => {
+    const more = panel.querySelector('.proj-more');
+    if (more) more.addEventListener('click', () => openModal(panel));
+  });
+
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+  });
+
+  // GitHub star 数:localStorage 缓存 + 过期重拉(stale-while-revalidate)
+  // 缓存命中且未过期 → 零请求;过期 → 先显示旧值再后台刷新;失败无缓存 → ✕
+  const STAR_TTL = 6 * 60 * 60 * 1000; // 6 小时
+
+  function readCache(repo) {
+    try {
+      const raw = localStorage.getItem('star:' + repo);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) { return null; }
+  }
+
+  function writeCache(repo, count) {
+    try {
+      localStorage.setItem('star:' + repo, JSON.stringify({ v: count, t: Date.now() }));
+    } catch (_) { /* 隐私模式等禁用存储时静默忽略 */ }
+  }
+
+  function showFail(el, num) {
+    num.textContent = '✕';
+    el.classList.add('star-fail');
+    el.title = 'star 数获取失败';
+  }
+
+  document.querySelectorAll('.proj-star[data-repo]').forEach((el) => {
+    const num = el.querySelector('.star-num');
+    const repo = el.dataset.repo;
+    const cached = readCache(repo);
+
+    // 有缓存先显示,避免占位符闪烁
+    if (cached && typeof cached.v === 'number') num.textContent = cached.v;
+
+    // 缓存新鲜则跳过网络请求
+    const fresh = cached && (Date.now() - cached.t < STAR_TTL);
+    if (fresh) return;
+
+    fetch('https://api.github.com/repos/' + repo)
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((d) => {
+        if (typeof d.stargazers_count !== 'number') throw new Error('no field');
+        num.textContent = d.stargazers_count;
+        el.classList.remove('star-fail');
+        el.removeAttribute('title');
+        writeCache(repo, d.stargazers_count);
+      })
+      .catch(() => {
+        // 请求失败时:有旧缓存就保留旧值,否则显示 ✕
+        if (!(cached && typeof cached.v === 'number')) showFail(el, num);
+      });
+  });
+})();
+
+// ---------- 5. 移动端菜单 ----------
 (function mobileNav() {
   const toggle = document.getElementById('nav-toggle');
   const links = document.querySelector('.nav-links');
@@ -337,7 +435,7 @@
   });
 })();
 
-// ---------- 5. 隐藏指令弹窗 ----------
+// ---------- 6. 隐藏指令弹窗 ----------
 (function easterModal() {
   const egg = document.getElementById('easter-egg');
   document.getElementById('easter-close').addEventListener('click', () => {
@@ -345,7 +443,7 @@
   });
 })();
 
-// ---------- 6. 全屏故障艺术特效 ----------
+// ---------- 7. 全屏故障艺术特效 ----------
 (function glitchFx() {
   // 尊重系统的"减少动态效果"设置
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -386,7 +484,7 @@
   schedule();
 })();
 
-// ---------- 7. 全局文字乱码闪烁 ----------
+// ---------- 8. 全局文字乱码闪烁 ----------
 // 随机抓取页面文本节点,把其中一段字符临时替换成乱码,抖几帧后恢复原文。
 // 只改 nodeValue 不动 DOM 结构,恢复时按快照原样写回,对内容零破坏。
 (function textCorruption() {
@@ -467,7 +565,7 @@
   schedule();
 })();
 
-// ---------- 8. 控制台招呼(程序员的仪式感) ----------
+// ---------- 9. 控制台招呼(程序员的仪式感) ----------
 console.log(
   '%cY0LAY TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
   'color:#0b0b0c;background:#ffd802;font-size:14px;font-weight:bold;padding:2px 8px;',
