@@ -1,5 +1,5 @@
 /* ==========================================================
-   Y0lay 个人主页脚本
+   Y5neKO 个人主页脚本
    监控站背景 / 可交互终端 / 滚动渐入 / 故障特效 / 文字乱码 / 隐藏指令
    ========================================================== */
 
@@ -122,13 +122,13 @@
   const files = {
     'about.json': [
       '{',
-      '  "name": "y0lay",',
-      '  "role": "全栈开发 / 安全研究",',
-      '  "stack": ["TypeScript", "Python", "Go"],',
-      '  "focus": "Web 安全与工程化"',
+      '  "name": "Y5neKO",',
+      '  "role": "网络安全 / 渗透测试 / CTFer",',
+      '  "team": "Y5Sec",',
+      '  "skills": ["Java", "Python", "PHP", "C"]',
       '}',
     ].join('\n'),
-    'motto.txt': '能自动化的绝不手动,能复现的必有日志。',
+    'motto.txt': 'Walk between the black and white.',
     'todo.md': '- [x] 重构部署脚本\n- [ ] 修复上周的 bug\n- [ ] 修复修 bug 时引入的新 bug',
     '.secret': '存在一条未注册指令:override',
   };
@@ -148,7 +148,7 @@
   }
 
   function printEcho(cmd) {
-    print('<span class="prompt">y0lay@dev:~$</span> ' + esc(cmd), 'line-cmd');
+    print('<span class="prompt">Y5neKO@dev:~$</span> ' + esc(cmd), 'line-cmd');
   }
 
   function scrollToSection(id) {
@@ -173,10 +173,10 @@
       print('<span class="out-dim">提示:↑↓ 翻历史,Tab 补全</span>');
     },
     whoami() {
-      print('y0lay — <span class="out-pink">全栈开发 / 安全研究</span>');
+      print('Y5neKO — <span class="out-pink">网络安全 / 渗透测试 / CTFer</span>');
     },
     neofetch() {
-      print('<span class="out-cyan">   ██  ██</span>       <span class="out-pink">y0lay</span>@<span class="out-pink">dev</span>');
+      print('<span class="out-cyan">   ██  ██</span>       <span class="out-pink">Y5neKO</span>@<span class="out-pink">dev</span>');
       print('<span class="out-cyan">    ████</span>        -----------------');
       print('<span class="out-cyan">     ██</span>         <span class="out-purple">OS:</span> Arch Linux x86_64');
       print('<span class="out-cyan">     ██</span>         <span class="out-purple">Shell:</span> zsh 5.9');
@@ -296,7 +296,7 @@
   body.addEventListener('click', () => input.focus());
 
   // 开机欢迎语
-  print('<span class="out-cyan">y0lay-terminal v2.6.0</span> <span class="out-dim">(kernel 6.9.0-wasteland)</span>');
+  print('<span class="out-cyan">Y5neKO-terminal v2.6.0</span> <span class="out-dim">(kernel 6.9.0-wasteland)</span>');
   print('<span class="out-dim">Last login: from 127.0.0.1</span>');
   print('');
   print('输入 <span class="out-cyan">help</span> 查看可用命令。');
@@ -425,7 +425,21 @@
   });
 })();
 
-// ---------- 5. 移动端菜单 ----------
+// ---------- 5. 代码块折叠(VSCode 风,漏洞编号数组) ----------
+(function codeFold() {
+  const fold = document.getElementById('vfold');
+  if (!fold) return;
+  const arrow = fold.querySelector('.fold-arrow');
+  const dots = fold.querySelector('.fold-dots');
+  const toggle = () => fold.classList.toggle('folded');
+  arrow.addEventListener('click', toggle);
+  dots.addEventListener('click', toggle);
+  arrow.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+})();
+
+// ---------- 6. 移动端菜单 ----------
 (function mobileNav() {
   const toggle = document.getElementById('nav-toggle');
   const links = document.querySelector('.nav-links');
@@ -435,7 +449,7 @@
   });
 })();
 
-// ---------- 6. 隐藏指令弹窗 ----------
+// ---------- 7. 隐藏指令弹窗 ----------
 (function easterModal() {
   const egg = document.getElementById('easter-egg');
   document.getElementById('easter-close').addEventListener('click', () => {
@@ -443,13 +457,14 @@
   });
 })();
 
-// ---------- 7. 全屏故障艺术特效 ----------
+// ---------- 8. 全屏故障艺术特效 ----------
 (function glitchFx() {
   // 尊重系统的"减少动态效果"设置
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const root = document.documentElement;
   const bands = document.querySelectorAll('.gfx-band');
+  const blocks = document.querySelectorAll('.gfx-block');
 
   // 生成电视噪点纹理
   const noise = document.querySelector('.gfx-noise');
@@ -465,15 +480,37 @@
   ctx.putImageData(img, 0, 0);
   noise.style.backgroundImage = 'url(' + c.toDataURL() + ')';
 
-  // 随机故障爆发:随机化条带位置后挂上 glitching 类
+  // 随机故障爆发:两种变体随机交替
+  //   变体1 glitching:RGB 色散 + 撕裂条带 + 抖动(520ms)
+  //   变体2 glitching-2:垂直失同步 + 雪花涌动 + 去色过曝 + 同步条(680ms)
+  //   变体3 glitching-3:数据块崩坏,随机矩形块反相色偏错位(620ms)
   function burst() {
-    bands.forEach((b) => {
-      b.style.top = Math.random() * 100 + '%';
-      b.style.height = 4 + Math.random() * 42 + 'px';
-      b.style.setProperty('--shift', (Math.random() * 18 - 9).toFixed(1) + 'px');
-    });
-    root.classList.add('glitching');
-    setTimeout(() => root.classList.remove('glitching'), 240);
+    const variant = Math.floor(Math.random() * 3);
+    if (variant === 0) {
+      bands.forEach((b) => {
+        b.style.top = Math.random() * 100 + '%';
+        b.style.height = 4 + Math.random() * 42 + 'px';
+        b.style.setProperty('--shift', (Math.random() * 18 - 9).toFixed(1) + 'px');
+      });
+      root.classList.add('glitching');
+      setTimeout(() => root.classList.remove('glitching'), 520);
+    } else if (variant === 1) {
+      root.classList.add('glitching-2');
+      setTimeout(() => root.classList.remove('glitching-2'), 680);
+    } else {
+      // 每次只随机启用约一半的块,更稀疏克制
+      blocks.forEach((b) => {
+        if (Math.random() < 0.45) { b.style.display = 'none'; return; }
+        b.style.display = '';
+        b.style.left = Math.random() * 84 + '%';
+        b.style.top = Math.random() * 86 + '%';
+        b.style.width = 36 + Math.random() * 120 + 'px';
+        b.style.height = 14 + Math.random() * 46 + 'px';
+        b.style.setProperty('--bx', (Math.random() * 18 - 9).toFixed(1) + 'px');
+      });
+      root.classList.add('glitching-3');
+      setTimeout(() => root.classList.remove('glitching-3'), 300);
+    }
     schedule();
   }
 
@@ -484,7 +521,7 @@
   schedule();
 })();
 
-// ---------- 8. 全局文字乱码闪烁 ----------
+// ---------- 9. 全局文字乱码闪烁 ----------
 // 随机抓取页面文本节点,把其中一段字符临时替换成乱码,抖几帧后恢复原文。
 // 只改 nodeValue 不动 DOM 结构,恢复时按快照原样写回,对内容零破坏。
 (function textCorruption() {
@@ -565,9 +602,9 @@
   schedule();
 })();
 
-// ---------- 9. 控制台招呼(程序员的仪式感) ----------
+// ---------- 10. 控制台招呼(程序员的仪式感) ----------
 console.log(
-  '%cY0LAY TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
+  '%cY5NEKO TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
   'color:#0b0b0c;background:#ffd802;font-size:14px;font-weight:bold;padding:2px 8px;',
   'color:#77766e;font-size:12px;padding-left:8px;'
 );

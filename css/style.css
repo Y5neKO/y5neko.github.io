@@ -1,5 +1,5 @@
 /* ==========================================================
-   Y0lay 个人主页 · 末世废土工业风(明日方舟系)
+   Y5neKO 个人主页 · 末世废土工业风(明日方舟系)
    配色:炭黑底 / 混凝土灰 / 警示黄 #ffd802 唯一高亮
    语言:直角切角面板、发丝描边、工业标注、故障艺术
    ========================================================== */
@@ -85,7 +85,7 @@ body::before {
 
 /* 右下角竖排工业标注 */
 body::after {
-  content: 'LAT 39.9042 / LON 116.4074 // SIGNAL LOST // Y0LAY_TERMINAL v2.6';
+  content: 'LAT 39.9042 / LON 116.4074 // SIGNAL LOST // Y5NEKO_TERMINAL v2.6';
   position: fixed;
   right: 10px;
   bottom: 24px;
@@ -637,17 +637,61 @@ body::after {
   gap: 1.4rem;
 }
 
-.code-block {
-  font-size: 0.88rem;
-  overflow-x: auto;
-  line-height: 1.75;
+/* 代码卡固定高度,内容溢出时代码块内部滚动(编辑器窗格式) */
+.about-card {
+  height: clamp(300px, 44vh, 400px);
+  display: flex;
+  padding: 1.2rem 1.4rem;
 }
+
+.code-block {
+  flex: 1;
+  min-height: 0;
+  font-size: 0.88rem;
+  overflow: auto;
+  line-height: 1.75;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 216, 2, 0.3) transparent;
+}
+
+.code-block::-webkit-scrollbar { width: 5px; height: 5px; }
+.code-block::-webkit-scrollbar-thumb { background: rgba(255, 216, 2, 0.3); }
+.code-block::-webkit-scrollbar-track { background: transparent; }
 
 .kw { color: var(--accent); }
 .var { color: var(--text); }
 .prop { color: #b8b6ac; }
 .str { color: var(--olive); }
 .fn { color: var(--accent); }
+
+/* VSCode 风代码折叠:漏洞编号数组可展开/折叠 */
+.fold-arrow {
+  display: inline-block;
+  width: 1.1em;
+  margin-left: -1.1em; /* 悬挂到行首缩进处,像编辑器折叠槽 */
+  color: var(--text-dim);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.fold-arrow::before { content: '▾'; }
+.fold.folded .fold-arrow::before { content: '▸'; }
+.fold-arrow:hover { color: var(--accent); }
+
+/* 折叠时的 [⋯] 徽章 */
+.fold-dots {
+  display: none;
+  padding: 0 0.45rem;
+  margin: 0 0.1rem;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.fold.folded .fold-dots { display: inline; }
+.fold.folded .fold-content { display: none; }
 
 .stat-card {
   display: grid;
@@ -1060,8 +1104,8 @@ body::after {
 .gfx-rgb-r { background: rgba(255, 0, 80, 0.1); }
 .gfx-rgb-c { background: rgba(0, 240, 255, 0.1); }
 
-html.glitching .gfx-rgb-r { animation: rgb-split-r 0.22s steps(3) both; }
-html.glitching .gfx-rgb-c { animation: rgb-split-c 0.22s steps(3) both; }
+html.glitching .gfx-rgb-r { animation: rgb-split-r 0.5s steps(5) both; }
+html.glitching .gfx-rgb-c { animation: rgb-split-c 0.5s steps(5) both; }
 
 @keyframes rgb-split-r {
   0%   { opacity: 1; transform: translateX(7px); }
@@ -1087,7 +1131,7 @@ html.glitching .gfx-band {
   opacity: 1;
   backdrop-filter: invert(0.85) contrast(1.3);
   -webkit-backdrop-filter: invert(0.85) contrast(1.3);
-  animation: band-tear 0.22s steps(2) both;
+  animation: band-tear 0.5s steps(4) both;
 }
 
 @keyframes band-tear {
@@ -1100,7 +1144,7 @@ html.glitching .gfx-band {
 html.glitching .hero,
 html.glitching main,
 html.glitching .footer {
-  animation: page-jitter 0.22s steps(2) both;
+  animation: page-jitter 0.5s steps(5) both;
 }
 
 @keyframes page-jitter {
@@ -1112,13 +1156,94 @@ html.glitching .footer {
 
 /* 导航现在是全宽贴顶,普通抖动即可 */
 html.glitching .navbar {
-  animation: nav-jitter 0.22s steps(2) both;
+  animation: nav-jitter 0.5s steps(4) both;
 }
 
 @keyframes nav-jitter {
   0%   { transform: translateX(4px); }
   50%  { transform: translateX(-3px); }
   100% { transform: none; }
+}
+
+/* ===== 花屏变体 2:信号失同步(垂直滚屏 + 雪花涌动 + 去色过曝 + 同步条) ===== */
+
+/* 满屏雪花在变体2期间涌动到高浓度 */
+html.glitching-2 .gfx-noise {
+  opacity: 0.4;
+  animation: noise-jiggle 0.12s steps(4) infinite;
+}
+
+/* 内容垂直失同步滚动 + 去色过曝闪白 */
+html.glitching-2 .hero,
+html.glitching-2 main,
+html.glitching-2 .footer {
+  animation: sync-loss 0.65s steps(6) both;
+}
+
+@keyframes sync-loss {
+  0%   { transform: translateY(-14px); filter: brightness(1.6) saturate(0.1) contrast(1.2); }
+  40%  { transform: translateY(10px);  filter: brightness(0.7) saturate(1.8); }
+  70%  { transform: translateY(-5px);  filter: brightness(1.3) saturate(0); }
+  100% { transform: none; filter: none; }
+}
+
+html.glitching-2 .navbar {
+  animation: sync-loss-nav 0.65s steps(5) both;
+}
+
+@keyframes sync-loss-nav {
+  0%   { transform: translateY(-8px); filter: brightness(1.6) saturate(0); }
+  50%  { transform: translateY(6px); }
+  100% { transform: none; filter: none; }
+}
+
+/* 快速下扫的亮同步条(仅变体2显形) */
+.gfx-rollbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 26px;
+  top: -30px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 255, 255, 0.5) 45%,
+    rgba(255, 216, 2, 0.35) 55%,
+    transparent
+  );
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+
+html.glitching-2 .gfx-rollbar {
+  animation: rollbar-sweep 0.65s steps(10) both;
+}
+
+@keyframes rollbar-sweep {
+  0%   { opacity: 0.9; top: -6%; }
+  100% { opacity: 0.7; top: 104%; }
+}
+
+/* ===== 花屏变体 3:数据块崩坏(macroblock datamosh) =====
+   随机迸出的矩形块把背后画面反相 + 色相偏移 + 错位闪烁,像编码宏块崩坏 */
+.gfx-block {
+  position: absolute;
+  opacity: 0;
+}
+
+html.glitching-3 .gfx-block {
+  /* 去彩虹化:近单色反相 + 去饱和 + 极淡暖调,贴合黑灰/警示黄调性 */
+  backdrop-filter: invert(0.82) contrast(1.15) saturate(0.35) sepia(0.18);
+  -webkit-backdrop-filter: invert(0.82) contrast(1.15) saturate(0.35) sepia(0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 216, 2, 0.12);
+  animation: block-corrupt 0.28s steps(3) both;
+}
+
+@keyframes block-corrupt {
+  0%   { transform: translateX(var(--bx, 6px)); opacity: 0.72; }
+  40%  { transform: translateX(calc(var(--bx, 6px) * -0.7)) translateY(2px); opacity: 0.6; }
+  70%  { transform: translateX(calc(var(--bx, 6px) * 0.4)); opacity: 0.5; }
+  100% { transform: none; opacity: 0; }
 }
 
 /* ---------- 彩蛋 ---------- */
