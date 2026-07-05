@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Y0lay | 二次元码农的秘密基地</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 代码雨背景 -->
+  <canvas id="matrix-canvas"></canvas>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="nav-logo glitch" data-text="&lt;Y0lay /&gt;">&lt;Y0lay /&gt;</div>
+    <ul class="nav-links">
+      <li><a href="#home">// 首页</a></li>
+      <li><a href="#about">// 关于</a></li>
+      <li><a href="#skills">// 技能</a></li>
+      <li><a href="#projects">// 项目</a></li>
+      <li><a href="#contact">// 联系</a></li>
+    </ul>
+    <button class="nav-toggle" id="nav-toggle" aria-label="菜单">☰</button>
+  </nav>
+
+  <!-- 首屏 Hero -->
+  <header class="hero" id="home">
+    <div class="hero-inner">
+      <div class="avatar-ring">
+        <img class="avatar" src="avatar.jpg" alt="头像">
+      </div>
+
+      <h1 class="hero-title glitch" data-text="Hello World_">Hello World_</h1>
+      <p class="hero-subtitle">一只沉迷二次元的 <span class="accent-pink">全栈码农</span> (๑•̀ㅂ•́)و✧</p>
+
+      <!-- 终端窗口 -->
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="terminal-title">y0lay@akihabara: ~/profile</span>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+          <div id="term-output"></div>
+          <div class="term-input-line">
+            <span class="prompt">y0lay@akihabara:~$</span>
+            <input type="text" id="term-input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="终端输入">
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-btns">
+        <a href="#projects" class="btn btn-pink">查看项目 →</a>
+        <a href="#contact" class="btn btn-cyan">召唤我</a>
+      </div>
+    </div>
+    <div class="scroll-hint">▼ 向下滚动 ▼</div>
+  </header>
+
+  <main>
+    <!-- 关于我 -->
+    <section class="section" id="about">
+      <h2 class="section-title"><span class="tag">&lt;about&gt;</span> 关于我 <span class="tag">&lt;/about&gt;</span></h2>
+      <div class="about-grid">
+        <div class="card about-card reveal">
+          <pre class="code-block"><code><span class="kw">const</span> <span class="var">y0lay</span> = {
+  <span class="prop">job</span>: <span class="str">'全栈开发 / 安全爱好者'</span>,
+  <span class="prop">home</span>: <span class="str">'秋叶原(精神上的)'</span>,
+  <span class="prop">anime</span>: [<span class="str">'EVA'</span>, <span class="str">'攻壳机动队'</span>, <span class="str">'JOJO'</span>],
+  <span class="prop">editor</span>: <span class="str">'VS Code + Vim 键位'</span>,
+  <span class="prop">fuel</span>: <span class="str">'冰阔落 & 快乐水'</span>,
+  <span class="prop">motto</span>: <span class="str">'代码和老婆,我全都要!'</span>,
+  <span class="fn">debug</span>() {
+    <span class="kw">while</span> (<span class="var">bug</span>.<span class="fn">exists</span>()) <span class="var">hair</span>--;
+  }
+};</code></pre>
+        </div>
+        <div class="card stat-card reveal">
+          <div class="stat"><span class="stat-num" data-target="9999">0</span><span class="stat-label">行代码 / 天</span></div>
+          <div class="stat"><span class="stat-num" data-target="1024">0</span><span class="stat-label">部补番数</span></div>
+          <div class="stat"><span class="stat-num" data-target="404">0</span><span class="stat-label">根秀发余额</span></div>
+          <div class="stat"><span class="stat-num" data-target="42">0</span><span class="stat-label">宇宙终极答案</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 技能 -->
+    <section class="section" id="skills">
+      <h2 class="section-title"><span class="tag">&lt;skills&gt;</span> 技能树 <span class="tag">&lt;/skills&gt;</span></h2>
+      <div class="skills-grid">
+        <div class="skill reveal">
+          <div class="skill-head"><span>JavaScript / TypeScript</span><span class="skill-pct">90%</span></div>
+          <div class="skill-bar"><div class="skill-fill fill-pink" data-width="90"></div></div>
+        </div>
+        <div class="skill reveal">
+          <div class="skill-head"><span>Python</span><span class="skill-pct">85%</span></div>
+          <div class="skill-bar"><div class="skill-fill fill-cyan" data-width="85"></div></div>
+        </div>
+        <div class="skill reveal">
+          <div class="skill-head"><span>Java</span><span class="skill-pct">80%</span></div>
+          <div class="skill-bar"><div class="skill-fill fill-purple" data-width="80"></div></div>
+        </div>
+        <div class="skill reveal">
+          <div class="skill-head"><span>CSS 魔法</span><span class="skill-pct">88%</span></div>
+          <div class="skill-bar"><div class="skill-fill fill-pink" data-width="88"></div></div>
+        </div>
+        <div class="skill reveal">
+          <div class="skill-head"><span>Web 安全</span><span class="skill-pct">75%</span></div>
+          <div class="skill-bar"><div class="skill-fill fill-cyan" data-width="75"></div></div>
+        </div>
+        <div class="skill reveal">
+          <div class="skill-head"><span>摸鱼学</span><span class="skill-pct">100%</span></div>
+          <div class="skill-bar"><div class="skill-fill fill-gold" data-width="100"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 项目 -->
+    <section class="section" id="projects">
+      <h2 class="section-title"><span class="tag">&lt;projects&gt;</span> 装备栏 <span class="tag">&lt;/projects&gt;</span></h2>
+      <div class="projects-grid">
+        <article class="card project-card reveal">
+          <div class="project-icon">[01]</div>
+          <h3>Sakura Blog</h3>
+          <p>樱花主题的静态博客引擎,支持 Markdown、代码高亮与弹幕评论。</p>
+          <div class="tags"><span>Vue3</span><span>Vite</span><span>Node</span></div>
+        </article>
+        <article class="card project-card reveal">
+          <div class="project-icon">[02]</div>
+          <h3>Waifu Bot</h3>
+          <p>会陪你写代码、催你早睡的 QQ 机器人,内置番剧更新提醒。</p>
+          <div class="tags"><span>Python</span><span>NoneBot</span></div>
+        </article>
+        <article class="card project-card reveal">
+          <div class="project-icon">[03]</div>
+          <h3>SecScan Kit</h3>
+          <p>轻量级 Web 漏洞扫描工具箱,专注授权渗透测试场景。</p>
+          <div class="tags"><span>Go</span><span>Security</span></div>
+        </article>
+        <article class="card project-card reveal">
+          <div class="project-icon">[04]</div>
+          <h3>Pixel Dungeon JS</h3>
+          <p>纯 Canvas 手写的像素风 Roguelike 小游戏,可在浏览器直接开冲。</p>
+          <div class="tags"><span>Canvas</span><span>JS</span></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 联系 -->
+    <section class="section" id="contact">
+      <h2 class="section-title"><span class="tag">&lt;contact&gt;</span> 召唤阵 <span class="tag">&lt;/contact&gt;</span></h2>
+      <div class="contact-box card reveal">
+        <p class="contact-line">(」°ロ°)」 想找我联机?丢个魔法信息过来吧!</p>
+        <div class="contact-links">
+          <a class="btn btn-outline" href="mailto:m0ck3r@protonmail.com">Email</a>
+          <a class="btn btn-outline" href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+          <a class="btn btn-outline" href="#">Bilibili</a>
+          <a class="btn btn-outline" href="#">X / Twitter</a>
+        </div>
+        <p class="hint">彩蛋提示:试试键盘上的 ↑↑↓↓←→←→BA (¬‿¬)</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 Y0lay · Made with <span class="accent-pink">♥</span> & 大量咖啡因</p>
+    <p class="footer-code">while(alive) { eat(); sleep(); code(); anime(); }</p>
+  </footer>
+
+  <!-- 彩蛋弹窗 -->
+  <div id="easter-egg" class="easter-egg hidden">
+    <div class="easter-inner">
+      <p class="easter-face">✧*。٩(ˊᗜˋ*)و✧*。</p>
+      <p>恭喜发现隐藏结局!<br>「无论异世界还是生产环境,都要好好活下去。」</p>
+      <button id="easter-close" class="btn btn-pink">收下祝福</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
