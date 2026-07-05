@@ -1,25 +1,26 @@
 /* ==========================================================
-   Y5neKO 个人主页 · 末世废土工业风(明日方舟系)
-   配色:炭黑底 / 混凝土灰 / 警示黄 #ffd802 唯一高亮
-   语言:直角切角面板、发丝描边、工业标注、故障艺术
+   Y5neKO 个人主页 · 赛博故障风(Cyberpunk Glitch)
+   配色:近黑蓝底 / 霓虹青 #00f0ff 主色 / 品红 #ff2a6d 色散副色
+   语言:硬边平面面板、RGB 色散、扫描线噪点、切角残留
    ========================================================== */
 
 :root {
-  --bg: #0b0b0c;
-  --bg-soft: #131315;
-  --accent: #ffd802;        /* 警示黄 */
-  --alert: #ff4d3a;         /* 事故红,仅用于报错 */
-  --text: #d9d7cf;          /* 灰白,像旧文件纸 */
-  --text-dim: #77766e;
-  --line: #2b2b2a;          /* 发丝分割线 */
-  --olive: #a3b18a;         /* 军规橄榄绿,代码字符串用 */
+  --bg: #050508;
+  --bg-soft: #0a0a12;
+  --accent: #00f0ff;        /* 霓虹青 */
+  --accent-2: #ff2a6d;      /* 品红,RGB 色散副色 */
+  --alert: #ff2a6d;         /* 报错与失效状态 */
+  --text: #e8f0f2;          /* 冷白 */
+  --text-dim: #61707f;      /* 冷蓝灰 */
+  --line: #1b2733;          /* 冷蓝灰分割线 */
+  --neon-green: #05ffa1;    /* 荧光薄荷,代码字符串用 */
 
-  /* 烟熏玻璃:半透明但去糖果化 */
-  --glass: rgba(255, 255, 255, 0.045);
-  --glass-strong: rgba(18, 18, 19, 0.5);
-  --glass-border: rgba(255, 255, 255, 0.14);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --blur: blur(18px) saturate(110%);
+  /* 硬边平面面板:深色实底 + 霓虹描边,无毛玻璃 */
+  --glass: rgba(8, 12, 20, 0.55);
+  --glass-strong: rgba(5, 8, 14, 0.85);
+  --glass-border: rgba(0, 240, 255, 0.22);
+  --glass-highlight: inset 0 1px 0 rgba(0, 240, 255, 0.1);
+  --blur: none;
 
   /* 切角:右上角削一刀,工业面板语言 */
   --notch: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
@@ -64,17 +65,17 @@ body::after {
   font-family: var(--mono);
 }
 
-/* 废土烟尘:低饱和灰橄榄雾 + 一缕警示黄,缓慢漂移供玻璃透出 */
+/* 霓虹雾:青/电蓝/品红极淡光晕,缓慢漂移 */
 body::before {
   content: '';
   position: fixed;
   inset: -30%;
   z-index: -3;
   background:
-    radial-gradient(40% 40% at 30% 25%, rgba(140, 138, 120, 0.16), transparent 70%),
-    radial-gradient(44% 44% at 72% 40%, rgba(94, 98, 86, 0.2), transparent 70%),
-    radial-gradient(36% 36% at 45% 68%, rgba(255, 216, 2, 0.07), transparent 70%),
-    radial-gradient(42% 42% at 60% 88%, rgba(120, 116, 100, 0.14), transparent 70%);
+    radial-gradient(40% 40% at 30% 25%, rgba(0, 240, 255, 0.07), transparent 70%),
+    radial-gradient(44% 44% at 72% 40%, rgba(64, 100, 255, 0.08), transparent 70%),
+    radial-gradient(36% 36% at 45% 68%, rgba(255, 42, 109, 0.05), transparent 70%),
+    radial-gradient(42% 42% at 60% 88%, rgba(0, 240, 255, 0.05), transparent 70%);
   animation: smog 30s ease-in-out infinite alternate;
 }
 
@@ -85,7 +86,7 @@ body::before {
 
 /* 右下角竖排工业标注 */
 body::after {
-  content: 'LAT 39.9042 / LON 116.4074 // SIGNAL LOST // Y5NEKO_TERMINAL v2.6';
+  content: 'LAT 39.9042 / LON 116.4074 // SIGNAL LOST // Y5NEKO_TERMINAL v3.0';
   position: fixed;
   right: 10px;
   bottom: 24px;
@@ -98,11 +99,11 @@ body::after {
   pointer-events: none;
 }
 
-::selection { background: var(--accent); color: #0b0b0c; }
+::selection { background: var(--accent); color: #050508; }
 
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #3a3a38; border: 1px solid var(--line); }
+::-webkit-scrollbar-thumb { background: #223140; border: 1px solid var(--line); }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 /* ---------- 背景层 ---------- */
@@ -112,10 +113,10 @@ body::after {
   inset: -160px;
   z-index: -2;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(0, 240, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.06) 1px, transparent 1px);
   background-size: 28px 28px, 28px 28px, 140px 140px, 140px 140px;
   animation: grid-pan 60s linear infinite;
 }
@@ -129,7 +130,7 @@ body::after {
 .bg-grid::after {
   content: '+';
   position: absolute;
-  color: rgba(255, 216, 2, 0.3);
+  color: rgba(0, 240, 255, 0.3);
   font: 18px var(--mono);
 }
 
@@ -166,7 +167,7 @@ body::after {
   -webkit-mask-image: linear-gradient(to top, #000 55%, transparent);
 }
 
-#syslog .syslog-warn { color: rgba(255, 216, 2, 0.75); }
+#syslog .syslog-warn { color: rgba(255, 42, 109, 0.75); }
 
 /* 雷达扫描 */
 #radar {
@@ -176,21 +177,21 @@ body::after {
   z-index: -1;
   width: 120px;
   height: 120px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(0, 240, 255, 0.25);
   border-radius: 50%;
   opacity: 0.5;
   pointer-events: none;
   background:
-    radial-gradient(circle, transparent 0 39px, rgba(255, 255, 255, 0.1) 39px 40px, transparent 40px 79px, rgba(255, 255, 255, 0.1) 79px 80px, transparent 80px),
-    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) 50% 50% / 1px 100% no-repeat,
-    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) 50% 50% / 100% 1px no-repeat;
+    radial-gradient(circle, transparent 0 39px, rgba(0, 240, 255, 0.12) 39px 40px, transparent 40px 79px, rgba(0, 240, 255, 0.12) 79px 80px, transparent 80px),
+    linear-gradient(rgba(0, 240, 255, 0.12), rgba(0, 240, 255, 0.12)) 50% 50% / 1px 100% no-repeat,
+    linear-gradient(rgba(0, 240, 255, 0.12), rgba(0, 240, 255, 0.12)) 50% 50% / 100% 1px no-repeat;
 }
 
 .radar-sweep {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: conic-gradient(transparent, transparent 290deg, rgba(255, 216, 2, 0.28) 360deg);
+  background: conic-gradient(transparent, transparent 290deg, rgba(0, 240, 255, 0.28) 360deg);
   animation: radar-rot 5s linear infinite;
 }
 
@@ -207,7 +208,7 @@ body::after {
 }
 
 @keyframes blip-fade {
-  0%   { opacity: 1; box-shadow: 0 0 8px rgba(255, 216, 2, 0.8); }
+  0%   { opacity: 1; box-shadow: 0 0 8px rgba(0, 240, 255, 0.8); }
   100% { opacity: 0; box-shadow: none; }
 }
 
@@ -229,7 +230,7 @@ body::after {
   border-bottom: 1px solid var(--line);
 }
 
-/* 导航底部一条警示黄细线 */
+/* 导航底部一条霓虹青细线 */
 .navbar::after {
   content: '';
   position: absolute;
@@ -246,6 +247,9 @@ body::after {
   color: var(--text);
   letter-spacing: 1px;
   cursor: default;
+  text-shadow:
+    1px 0 rgba(255, 42, 109, 0.5),
+    -1px 0 rgba(0, 240, 255, 0.5);
 }
 
 .nav-links {
@@ -267,7 +271,14 @@ body::after {
 .nav-links a:hover {
   color: var(--accent);
   border-color: var(--line);
-  background: rgba(255, 216, 2, 0.06);
+  background: rgba(0, 240, 255, 0.06);
+}
+
+/* 当前模块对应的导航按钮(scrollspy 点亮) */
+.nav-links a.is-active {
+  color: var(--accent);
+  border-color: rgba(0, 240, 255, 0.45);
+  background: rgba(0, 240, 255, 0.09);
 }
 
 .nav-toggle {
@@ -317,7 +328,7 @@ body::after {
 }
 
 .avatar-ring::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
-.avatar-ring::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+.avatar-ring::after { bottom: -2px; right: -2px; border-left: none; border-top: none; border-color: var(--accent-2); }
 
 .avatar {
   width: 100%;
@@ -332,6 +343,10 @@ body::after {
   color: var(--text);
   letter-spacing: 3px;
   text-transform: uppercase;
+  /* 常驻轻微色散,故障爆发时叠加 .glitch 双通道错位 */
+  text-shadow:
+    2px 0 rgba(255, 42, 109, 0.35),
+    -2px 0 rgba(0, 240, 255, 0.35);
 }
 
 .hero-subtitle {
@@ -343,7 +358,7 @@ body::after {
 
 .accent { color: var(--accent); }
 
-/* 故障风文字:白底文字 + 红青双通道错位(经典色散) */
+/* 故障风文字:冷白文字 + 品红/霓虹青双通道错位(RGB 色散) */
 .glitch { position: relative; }
 
 .glitch::before,
@@ -356,13 +371,13 @@ body::after {
 }
 
 .glitch::before {
-  color: #ff3b30;
+  color: var(--accent-2);
   animation: glitch-shift 2.8s infinite steps(2);
   clip-path: inset(0 0 55% 0);
 }
 
 .glitch::after {
-  color: #00e5ff;
+  color: var(--accent);
   animation: glitch-shift 2.8s infinite steps(2) reverse;
   clip-path: inset(55% 0 0 0);
 }
@@ -389,7 +404,7 @@ body::after {
 }
 
 .terminal:focus-within {
-  border-color: rgba(255, 216, 2, 0.45);
+  border-color: rgba(0, 240, 255, 0.45);
 }
 
 .terminal-header {
@@ -401,11 +416,11 @@ body::after {
   border-bottom: 1px solid var(--line);
 }
 
-/* 指示灯:两盏熄灭一盏警示黄,像设备待机灯 */
+/* 指示灯:品红/霓虹青双灯亮起 + 一盏熄灭,信号灯语言 */
 .dot { width: 9px; height: 9px; }
-.dot.red { background: #3d3d3b; }
+.dot.red { background: var(--accent-2); }
 .dot.yellow { background: var(--accent); }
-.dot.green { background: #3d3d3b; }
+.dot.green { background: #26303c; }
 
 .terminal-title {
   margin-left: auto;
@@ -423,11 +438,11 @@ body::after {
   line-height: 1.75;
   cursor: text;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 216, 2, 0.3) transparent;
+  scrollbar-color: rgba(0, 240, 255, 0.3) transparent;
 }
 
 .terminal-body::-webkit-scrollbar { width: 4px; }
-.terminal-body::-webkit-scrollbar-thumb { background: rgba(255, 216, 2, 0.3); }
+.terminal-body::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); }
 
 .prompt { color: var(--accent); margin-right: 6px; white-space: nowrap; }
 
@@ -436,12 +451,12 @@ body::after {
 #term-output .line { min-height: 1.5em; }
 
 #term-output .line-cmd { color: var(--text); margin-top: 0.35em; }
-/* 类名沿用旧调色板,颜色已映射到废土色系 */
+/* 终端输出色:青/品红/薄荷绿霓虹,类名语义回归 */
 #term-output .out-cyan { color: var(--accent); }
-#term-output .out-pink { color: var(--accent); }
-#term-output .out-purple { color: #b8b6ac; }
-#term-output .out-gold { color: var(--accent); }
-#term-output .out-green { color: var(--olive); }
+#term-output .out-pink { color: var(--accent-2); }
+#term-output .out-purple { color: #8fa5b8; }
+#term-output .out-gold { color: var(--accent-2); }
+#term-output .out-green { color: var(--neon-green); }
 #term-output .out-dim { color: var(--text-dim); }
 #term-output .out-err { color: var(--alert); }
 
@@ -483,11 +498,11 @@ body::after {
 
 .btn-primary {
   background: var(--accent);
-  color: #0b0b0c;
+  color: #050508;
   font-weight: bold;
 }
 
-.btn-primary:hover { background: #ffe64d; }
+.btn-primary:hover { background: #7df6ff; }
 
 .btn-ghost {
   background: var(--glass);
@@ -497,7 +512,7 @@ body::after {
   -webkit-backdrop-filter: var(--blur);
 }
 
-.btn-ghost:hover { color: var(--accent); box-shadow: inset 0 0 0 1px rgba(255, 216, 2, 0.5); }
+.btn-ghost:hover { color: var(--accent); box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.5); }
 
 .btn-outline {
   background: var(--glass);
@@ -509,8 +524,8 @@ body::after {
 
 .btn-outline:hover {
   color: var(--accent);
-  box-shadow: inset 0 0 0 1px rgba(255, 216, 2, 0.5);
-  background: rgba(255, 216, 2, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.5);
+  background: rgba(0, 240, 255, 0.05);
 }
 
 .scroll-hint {
@@ -537,7 +552,7 @@ body::after {
   scroll-snap-stop: always;
 }
 
-/* 标题:左侧警示黄短竖条 + 大写字距 */
+/* 标题:左侧霓虹青短竖条 + 大写字距 */
 .section-title {
   display: flex;
   align-items: center;
@@ -555,17 +570,16 @@ body::after {
   background: var(--accent);
 }
 
-/* 标题右侧的警示斜纹小段 */
+/* 标题右侧的色散斜纹小段:品红/青双层错位 */
 .section-title::after {
   content: '';
   width: 46px;
   height: 8px;
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--accent) 0 5px,
-    transparent 5px 10px
-  );
-  opacity: 0.7;
+  background-image:
+    repeating-linear-gradient(-45deg, var(--accent-2) 0 5px, transparent 5px 10px),
+    repeating-linear-gradient(-45deg, var(--accent) 0 5px, transparent 5px 10px);
+  background-position: 2px 2px, 0 0;
+  opacity: 0.8;
 }
 
 .tag {
@@ -574,7 +588,7 @@ body::after {
   opacity: 0.9;
 }
 
-/* 烟熏玻璃面板:直角 + 右上切角 */
+/* 硬边平面面板:直角 + 右上切角,霓虹描边 */
 .card {
   position: relative;
   background: var(--glass);
@@ -601,14 +615,13 @@ body::after {
 
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(255, 216, 2, 0.4);
-  background: rgba(255, 255, 255, 0.075);
+  border-color: rgba(0, 240, 255, 0.55);
+  background: rgba(0, 240, 255, 0.05);
 }
 
 /* 滚动渐入
-   动画必须挂在毛玻璃元素自身,不能挂在其容器上——
-   祖先带 opacity/transform 会变成 backdrop root,内部 backdrop-filter 失效;
-   元素自己动画自己则不受影响,移动全程保持毛玻璃。 */
+   动画挂在面板元素自身而非容器:祖先带 opacity/transform 会成为
+   backdrop root,影响特效层的 backdrop-filter(撕裂条带/宏块)。 */
 .reveal { opacity: 0; }
 
 .reveal.visible {
@@ -651,18 +664,18 @@ body::after {
   overflow: auto;
   line-height: 1.75;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 216, 2, 0.3) transparent;
+  scrollbar-color: rgba(0, 240, 255, 0.3) transparent;
 }
 
 .code-block::-webkit-scrollbar { width: 5px; height: 5px; }
-.code-block::-webkit-scrollbar-thumb { background: rgba(255, 216, 2, 0.3); }
+.code-block::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); }
 .code-block::-webkit-scrollbar-track { background: transparent; }
 
 .kw { color: var(--accent); }
 .var { color: var(--text); }
-.prop { color: #b8b6ac; }
-.str { color: var(--olive); }
-.fn { color: var(--accent); }
+.prop { color: #8fa5b8; }
+.str { color: var(--neon-green); }
+.fn { color: var(--accent-2); }
 
 /* VSCode 风代码折叠:漏洞编号数组可展开/折叠 */
 .fold-arrow {
@@ -706,6 +719,7 @@ body::after {
   font-size: 2rem;
   font-weight: bold;
   color: var(--accent);
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.45);
 }
 
 .stat-label { font-size: 0.78rem; color: var(--text-dim); letter-spacing: 1px; }
@@ -740,13 +754,13 @@ body::after {
   transition: border-color 0.2s, background 0.2s, transform 0.15s;
 }
 
-.proj-item:hover { border-color: rgba(255, 216, 2, 0.4); transform: translateX(3px); }
+.proj-item:hover { border-color: rgba(0, 240, 255, 0.4); transform: translateX(3px); }
 .proj-item:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
 
-/* 选中态:左侧警示黄竖条 + 提亮 */
+/* 选中态:左侧霓虹青竖条 + 提亮 */
 .proj-item.is-active {
-  border-color: rgba(255, 216, 2, 0.55);
-  background: rgba(255, 216, 2, 0.07);
+  border-color: rgba(0, 240, 255, 0.55);
+  background: rgba(0, 240, 255, 0.07);
 }
 
 .proj-item.is-active::before {
@@ -877,7 +891,7 @@ body::after {
   margin-bottom: 1rem;
 }
 
-/* 特性/更新条目:README 原文,警示黄短横引导 */
+/* 特性/更新条目:README 原文,霓虹青短横引导 */
 .proj-features {
   list-style: none;
   margin-bottom: 1.2rem;
@@ -920,9 +934,7 @@ body::after {
   align-items: center;
   justify-content: center;
   padding: 5vh 5vw;
-  background: rgba(11, 11, 12, 0.72);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(4, 5, 9, 0.8);
 }
 
 .proj-modal.hidden { display: none; }
@@ -935,7 +947,7 @@ body::after {
   background: var(--glass-strong);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
-  border: 1px solid rgba(255, 216, 2, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.4);
   clip-path: var(--notch);
   animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -973,11 +985,11 @@ body::after {
   padding: 1.6rem 1.8rem;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 216, 2, 0.3) transparent;
+  scrollbar-color: rgba(0, 240, 255, 0.3) transparent;
 }
 
 .proj-modal-body::-webkit-scrollbar { width: 5px; }
-.proj-modal-body::-webkit-scrollbar-thumb { background: rgba(255, 216, 2, 0.3); }
+.proj-modal-body::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); }
 
 /* 悬浮窗内的内容用完整展开样式(克隆自面板,去掉截断) */
 .proj-modal-body .proj-head { margin-bottom: 1.1rem; }
@@ -1012,7 +1024,7 @@ body::after {
   position: relative;
 }
 
-/* 页脚顶部的警示斜纹条 */
+/* 页脚顶部的色散斜纹条:品红/青双层错位 */
 .footer::before {
   content: '';
   position: absolute;
@@ -1021,11 +1033,10 @@ body::after {
   transform: translateX(-50%);
   width: 180px;
   height: 5px;
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--accent) 0 6px,
-    #0b0b0c 6px 12px
-  );
+  background-image:
+    repeating-linear-gradient(-45deg, var(--accent-2) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(-45deg, var(--accent) 0 6px, transparent 6px 12px);
+  background-position: 2px 1px, 0 0;
   opacity: 0.8;
 }
 
@@ -1063,9 +1074,9 @@ body::after {
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(255, 216, 2, 0.03) 45%,
+    rgba(0, 240, 255, 0.03) 45%,
     rgba(255, 255, 255, 0.05) 50%,
-    rgba(255, 216, 2, 0.03) 55%,
+    rgba(0, 240, 255, 0.03) 55%,
     transparent
   );
   animation: beam-sweep 8s linear infinite;
@@ -1101,8 +1112,8 @@ body::after {
   mix-blend-mode: screen;
 }
 
-.gfx-rgb-r { background: rgba(255, 0, 80, 0.1); }
-.gfx-rgb-c { background: rgba(0, 240, 255, 0.1); }
+.gfx-rgb-r { background: rgba(255, 42, 109, 0.12); }
+.gfx-rgb-c { background: rgba(0, 240, 255, 0.12); }
 
 html.glitching .gfx-rgb-r { animation: rgb-split-r 0.5s steps(5) both; }
 html.glitching .gfx-rgb-c { animation: rgb-split-c 0.5s steps(5) both; }
@@ -1140,7 +1151,7 @@ html.glitching .gfx-band {
   100% { transform: none; opacity: 0; }
 }
 
-/* 爆发时页面内容抖动(短促 keyframe,播完即恢复,不影响毛玻璃常态) */
+/* 爆发时页面内容抖动(短促 keyframe,播完即恢复) */
 html.glitching .hero,
 html.glitching main,
 html.glitching .footer {
@@ -1208,7 +1219,7 @@ html.glitching-2 .navbar {
     to bottom,
     transparent,
     rgba(255, 255, 255, 0.5) 45%,
-    rgba(255, 216, 2, 0.35) 55%,
+    rgba(0, 240, 255, 0.35) 55%,
     transparent
   );
   opacity: 0;
@@ -1232,10 +1243,10 @@ html.glitching-2 .gfx-rollbar {
 }
 
 html.glitching-3 .gfx-block {
-  /* 去彩虹化:近单色反相 + 去饱和 + 极淡暖调,贴合黑灰/警示黄调性 */
-  backdrop-filter: invert(0.82) contrast(1.15) saturate(0.35) sepia(0.18);
-  -webkit-backdrop-filter: invert(0.82) contrast(1.15) saturate(0.35) sepia(0.18);
-  box-shadow: inset 0 0 0 1px rgba(255, 216, 2, 0.12);
+  /* 反相 + 色相翻转到冷调,贴合青/品红霓虹调性 */
+  backdrop-filter: invert(0.82) contrast(1.15) saturate(0.5) hue-rotate(160deg);
+  -webkit-backdrop-filter: invert(0.82) contrast(1.15) saturate(0.5) hue-rotate(160deg);
+  box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.15);
   animation: block-corrupt 0.28s steps(3) both;
 }
 
@@ -1251,12 +1262,10 @@ html.glitching-3 .gfx-block {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(11, 11, 12, 0.7);
+  background: rgba(4, 5, 9, 0.78);
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .easter-egg.hidden { display: none; }
@@ -1265,7 +1274,7 @@ html.glitching-3 .gfx-block {
   background: var(--glass-strong);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
-  border: 1px solid rgba(255, 216, 2, 0.5);
+  border: 1px solid rgba(0, 240, 255, 0.5);
   clip-path: var(--notch);
   padding: 2.4rem 3rem;
   text-align: center;
@@ -1286,9 +1295,7 @@ html.glitching-3 .gfx-block {
     right: 0;
     flex-direction: column;
     gap: 0;
-    background: rgba(11, 11, 12, 0.92);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
+    background: rgba(4, 6, 10, 0.94);
     border: 1px solid var(--line);
     width: 200px;
     max-height: 0;

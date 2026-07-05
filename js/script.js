@@ -37,7 +37,7 @@
 
   function frame() {
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#cfcdc2';
+    ctx.fillStyle = '#9fe8f5';
     for (const p of parts) {
       p.x += p.vx;
       p.y += p.vy;
@@ -296,7 +296,7 @@
   body.addEventListener('click', () => input.focus());
 
   // 开机欢迎语
-  print('<span class="out-cyan">Y5neKO-terminal v2.6.0</span> <span class="out-dim">(kernel 6.9.0-wasteland)</span>');
+  print('<span class="out-cyan">Y5neKO-terminal v3.0.0</span> <span class="out-dim">(kernel 6.9.0-glitch)</span>');
   print('<span class="out-dim">Last login: from 127.0.0.1</span>');
   print('');
   print('输入 <span class="out-cyan">help</span> 查看可用命令。');
@@ -449,7 +449,29 @@
   });
 })();
 
-// ---------- 7. 隐藏指令弹窗 ----------
+// ---------- 7. 导航高亮:当前模块对应按钮点亮 ----------
+(function navSpy() {
+  const links = document.querySelectorAll('.nav-links a[href^="#"]');
+  const map = new Map(); // 区块元素 -> 对应导航链接
+  links.forEach((a) => {
+    const sec = document.querySelector(a.getAttribute('href'));
+    if (sec) map.set(sec, a);
+  });
+
+  // 区块跨过视口中线即视为当前模块;用窄带而非阈值,
+  // 区块高于一屏(移动端)时也能正确命中
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      links.forEach((a) => a.classList.remove('is-active'));
+      map.get(entry.target).classList.add('is-active');
+    });
+  }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+
+  map.forEach((_, sec) => observer.observe(sec));
+})();
+
+// ---------- 8. 隐藏指令弹窗 ----------
 (function easterModal() {
   const egg = document.getElementById('easter-egg');
   document.getElementById('easter-close').addEventListener('click', () => {
@@ -457,7 +479,7 @@
   });
 })();
 
-// ---------- 8. 全屏故障艺术特效 ----------
+// ---------- 9. 全屏故障艺术特效 ----------
 (function glitchFx() {
   // 尊重系统的"减少动态效果"设置
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -521,7 +543,7 @@
   schedule();
 })();
 
-// ---------- 9. 全局文字乱码闪烁 ----------
+// ---------- 10. 全局文字乱码闪烁 ----------
 // 随机抓取页面文本节点,把其中一段字符临时替换成乱码,抖几帧后恢复原文。
 // 只改 nodeValue 不动 DOM 结构,恢复时按快照原样写回,对内容零破坏。
 (function textCorruption() {
@@ -602,9 +624,9 @@
   schedule();
 })();
 
-// ---------- 10. 控制台招呼(程序员的仪式感) ----------
+// ---------- 11. 控制台招呼(程序员的仪式感) ----------
 console.log(
   '%cY5NEKO TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
-  'color:#0b0b0c;background:#ffd802;font-size:14px;font-weight:bold;padding:2px 8px;',
-  'color:#77766e;font-size:12px;padding-left:8px;'
+  'color:#050508;background:#00f0ff;font-size:14px;font-weight:bold;padding:2px 8px;',
+  'color:#61707f;font-size:12px;padding-left:8px;'
 );
