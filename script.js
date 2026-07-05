@@ -30,9 +30,9 @@
 
     for (let i = 0; i < drops.length; i++) {
       const char = chars[Math.floor(Math.random() * chars.length)];
-      // 粉青交替,偶尔高亮白
+      // 废土色系:灰绿为主,少量警示黄,极少高亮白
       const r = Math.random();
-      ctx.fillStyle = r > 0.975 ? '#ffffff' : (i % 2 ? '#7df9ff' : '#ff2e88');
+      ctx.fillStyle = r > 0.985 ? '#f4f3ee' : (i % 9 === 0 ? '#ffd802' : '#5d6152');
       ctx.fillText(char, i * fontSize, drops[i] * fontSize);
 
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
@@ -344,6 +344,6 @@
 // ---------- 7. 控制台招呼(程序员的仪式感) ----------
 console.log(
   '%c(ノ≧∀≦)ノ 欢迎光临 Y0lay 的秘密基地!\n%c既然都打开控制台了,不如来一起写代码?',
-  'color:#ff2e88;font-size:16px;font-weight:bold;',
-  'color:#7df9ff;font-size:12px;'
+  'color:#ffd802;font-size:16px;font-weight:bold;',
+  'color:#a3b18a;font-size:12px;'
 );
