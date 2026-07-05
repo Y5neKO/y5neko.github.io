@@ -81,12 +81,109 @@ body::after {
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 /* ---------- 背景层 ---------- */
-#matrix-canvas {
+/* 工程蓝图网格:细格 + 粗格双层,缓慢平移产生视差 */
+.bg-grid {
+  position: fixed;
+  inset: -160px;
+  z-index: -2;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px, 28px 28px, 140px 140px, 140px 140px;
+  animation: grid-pan 60s linear infinite;
+}
+
+@keyframes grid-pan {
+  to { transform: translate(140px, 140px); }
+}
+
+/* 网格上的基准十字标记 */
+.bg-grid::before,
+.bg-grid::after {
+  content: '+';
+  position: absolute;
+  color: rgba(255, 216, 2, 0.3);
+  font: 18px var(--mono);
+}
+
+.bg-grid::before { top: 30%; left: 22%; }
+.bg-grid::after { top: 64%; left: 74%; }
+
+/* 漂浮尘埃 */
+#dust-canvas {
   position: fixed;
   inset: 0;
   z-index: -2;
+  opacity: 0.6;
+}
+
+/* 滚动系统日志流 */
+#syslog {
+  position: fixed;
+  left: 18px;
+  bottom: 16px;
+  z-index: -1;
+  width: 320px;
+  max-height: 38vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  font-size: 10px;
+  line-height: 1.8;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  opacity: 0.55;
+  pointer-events: none;
+  mask-image: linear-gradient(to top, #000 55%, transparent);
+  -webkit-mask-image: linear-gradient(to top, #000 55%, transparent);
+}
+
+#syslog .syslog-warn { color: rgba(255, 216, 2, 0.75); }
+
+/* 雷达扫描 */
+#radar {
+  position: fixed;
+  right: 42px;
+  bottom: 84px;
+  z-index: -1;
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
   opacity: 0.5;
-  mix-blend-mode: screen; /* 只叠加亮色字符,不遮挡烟尘 */
+  pointer-events: none;
+  background:
+    radial-gradient(circle, transparent 0 39px, rgba(255, 255, 255, 0.1) 39px 40px, transparent 40px 79px, rgba(255, 255, 255, 0.1) 79px 80px, transparent 80px),
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) 50% 50% / 1px 100% no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) 50% 50% / 100% 1px no-repeat;
+}
+
+.radar-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(rgba(255, 216, 2, 0.28), transparent 70deg, transparent);
+  animation: radar-rot 5s linear infinite;
+}
+
+@keyframes radar-rot { to { transform: rotate(360deg); } }
+
+.radar-blip {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: blip-fade 3s ease-out forwards;
+}
+
+@keyframes blip-fade {
+  0%   { opacity: 1; box-shadow: 0 0 8px rgba(255, 216, 2, 0.8); }
+  100% { opacity: 0; box-shadow: none; }
 }
 
 /* ---------- 导航:贴顶工业横条 ---------- */
@@ -847,7 +944,9 @@ html.glitching .navbar {
 
   .terminal-body { height: 280px; }
 
-  body::after { display: none; }
+  body::after,
+  #syslog,
+  #radar { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

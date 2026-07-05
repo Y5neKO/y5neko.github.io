@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Y0lay | 二次元码农的秘密基地</title>
+  <title>Y0lay | Full-Stack Developer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- 代码雨背景 -->
-  <canvas id="matrix-canvas"></canvas>
+  <!-- 背景:蓝图网格 / 尘埃粒子 / 系统日志流 / 雷达扫描 -->
+  <div class="bg-grid" aria-hidden="true"></div>
+  <canvas id="dust-canvas"></canvas>
+  <div id="syslog" aria-hidden="true"></div>
+  <div id="radar" aria-hidden="true"><div class="radar-sweep"></div></div>
 
   <!-- 全屏故障艺术特效层 -->
   <div id="glitch-fx" aria-hidden="true">
@@ -44,7 +47,7 @@
       </div>
 
       <h1 class="hero-title glitch" data-text="Hello World_">Hello World_</h1>
-      <p class="hero-subtitle">一只沉迷二次元的 <span class="accent">全栈码农</span> (๑•̀ㅂ•́)و✧</p>
+      <p class="hero-subtitle"><span class="accent">全栈开发</span> / Web 安全 / 基础设施</p>
 
       <!-- 终端窗口 -->
       <div class="terminal">
@@ -52,12 +55,12 @@
           <span class="dot red"></span>
           <span class="dot yellow"></span>
           <span class="dot green"></span>
-          <span class="terminal-title">y0lay@akihabara: ~/profile</span>
+          <span class="terminal-title">y0lay@dev: ~/profile</span>
         </div>
         <div class="terminal-body" id="terminal-body">
           <div id="term-output"></div>
           <div class="term-input-line">
-            <span class="prompt">y0lay@akihabara:~$</span>
+            <span class="prompt">y0lay@dev:~$</span>
             <input type="text" id="term-input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="终端输入">
           </div>
         </div>
@@ -78,29 +81,29 @@
       <div class="about-grid">
         <div class="card about-card reveal">
           <pre class="code-block"><code><span class="kw">const</span> <span class="var">y0lay</span> = {
-  <span class="prop">job</span>: <span class="str">'全栈开发 / 安全爱好者'</span>,
-  <span class="prop">home</span>: <span class="str">'秋叶原(精神上的)'</span>,
-  <span class="prop">anime</span>: [<span class="str">'EVA'</span>, <span class="str">'攻壳机动队'</span>, <span class="str">'JOJO'</span>],
+  <span class="prop">role</span>: <span class="str">'全栈开发 / 安全研究'</span>,
+  <span class="prop">location</span>: <span class="str">'CN / Remote'</span>,
+  <span class="prop">stack</span>: [<span class="str">'TypeScript'</span>, <span class="str">'Python'</span>, <span class="str">'Go'</span>],
   <span class="prop">editor</span>: <span class="str">'VS Code + Vim 键位'</span>,
-  <span class="prop">fuel</span>: <span class="str">'冰阔落 & 快乐水'</span>,
-  <span class="prop">motto</span>: <span class="str">'代码和老婆,我全都要!'</span>,
-  <span class="fn">debug</span>() {
-    <span class="kw">while</span> (<span class="var">bug</span>.<span class="fn">exists</span>()) <span class="var">hair</span>--;
+  <span class="prop">focus</span>: <span class="str">'Web 安全与工程化'</span>,
+  <span class="prop">uptime</span>: <span class="str">'7x24(降级运行中)'</span>,
+  <span class="fn">contact</span>() {
+    <span class="kw">return</span> <span class="var">channels</span>.<span class="fn">filter</span>(<span class="var">c</span> =&gt; <span class="var">c</span>.<span class="prop">open</span>);
   }
 };</code></pre>
         </div>
         <div class="card stat-card reveal">
-          <div class="stat"><span class="stat-num" data-target="9999">0</span><span class="stat-label">行代码 / 天</span></div>
-          <div class="stat"><span class="stat-num" data-target="1024">0</span><span class="stat-label">部补番数</span></div>
-          <div class="stat"><span class="stat-num" data-target="404">0</span><span class="stat-label">根秀发余额</span></div>
-          <div class="stat"><span class="stat-num" data-target="42">0</span><span class="stat-label">宇宙终极答案</span></div>
+          <div class="stat"><span class="stat-num" data-target="3200">0</span><span class="stat-label">Git 提交 / 年</span></div>
+          <div class="stat"><span class="stat-num" data-target="24">0</span><span class="stat-label">开源仓库</span></div>
+          <div class="stat"><span class="stat-num" data-target="16">0</span><span class="stat-label">安全报告</span></div>
+          <div class="stat"><span class="stat-num" data-target="42">0</span><span class="stat-label">生产事故复盘</span></div>
         </div>
       </div>
     </section>
 
     <!-- 技能 -->
     <section class="section" id="skills">
-      <h2 class="section-title"><span class="tag">&lt;skills&gt;</span> 技能树 <span class="tag">&lt;/skills&gt;</span></h2>
+      <h2 class="section-title"><span class="tag">&lt;skills&gt;</span> 技术栈 <span class="tag">&lt;/skills&gt;</span></h2>
       <div class="skills-grid">
         <div class="skill reveal">
           <div class="skill-head"><span>JavaScript / TypeScript</span><span class="skill-pct">90%</span></div>
@@ -115,7 +118,7 @@
           <div class="skill-bar"><div class="skill-fill fill-purple" data-width="80"></div></div>
         </div>
         <div class="skill reveal">
-          <div class="skill-head"><span>CSS 魔法</span><span class="skill-pct">88%</span></div>
+          <div class="skill-head"><span>HTML / CSS</span><span class="skill-pct">88%</span></div>
           <div class="skill-bar"><div class="skill-fill fill-pink" data-width="88"></div></div>
         </div>
         <div class="skill reveal">
@@ -123,27 +126,27 @@
           <div class="skill-bar"><div class="skill-fill fill-cyan" data-width="75"></div></div>
         </div>
         <div class="skill reveal">
-          <div class="skill-head"><span>摸鱼学</span><span class="skill-pct">100%</span></div>
-          <div class="skill-bar"><div class="skill-fill fill-gold" data-width="100"></div></div>
+          <div class="skill-head"><span>Linux / DevOps</span><span class="skill-pct">78%</span></div>
+          <div class="skill-bar"><div class="skill-fill fill-gold" data-width="78"></div></div>
         </div>
       </div>
     </section>
 
     <!-- 项目 -->
     <section class="section" id="projects">
-      <h2 class="section-title"><span class="tag">&lt;projects&gt;</span> 装备栏 <span class="tag">&lt;/projects&gt;</span></h2>
+      <h2 class="section-title"><span class="tag">&lt;projects&gt;</span> 项目 <span class="tag">&lt;/projects&gt;</span></h2>
       <div class="projects-grid">
         <article class="card project-card reveal">
           <div class="project-icon">[01]</div>
-          <h3>Sakura Blog</h3>
-          <p>樱花主题的静态博客引擎,支持 Markdown、代码高亮与弹幕评论。</p>
+          <h3>Static Blog Engine</h3>
+          <p>Markdown 静态博客引擎,支持代码高亮、增量构建与全文检索。</p>
           <div class="tags"><span>Vue3</span><span>Vite</span><span>Node</span></div>
         </article>
         <article class="card project-card reveal">
           <div class="project-icon">[02]</div>
-          <h3>Waifu Bot</h3>
-          <p>会陪你写代码、催你早睡的 QQ 机器人,内置番剧更新提醒。</p>
-          <div class="tags"><span>Python</span><span>NoneBot</span></div>
+          <h3>CI Notify Bot</h3>
+          <p>基于 WebHook 的构建通知机器人,聚合 CI 状态、告警与值班提醒。</p>
+          <div class="tags"><span>Python</span><span>WebHook</span></div>
         </article>
         <article class="card project-card reveal">
           <div class="project-icon">[03]</div>
@@ -154,7 +157,7 @@
         <article class="card project-card reveal">
           <div class="project-icon">[04]</div>
           <h3>Pixel Dungeon JS</h3>
-          <p>纯 Canvas 手写的像素风 Roguelike 小游戏,可在浏览器直接开冲。</p>
+          <p>纯 Canvas 实现的像素风 Roguelike,零依赖,浏览器直接运行。</p>
           <div class="tags"><span>Canvas</span><span>JS</span></div>
         </article>
       </div>
@@ -162,30 +165,30 @@
 
     <!-- 联系 -->
     <section class="section" id="contact">
-      <h2 class="section-title"><span class="tag">&lt;contact&gt;</span> 召唤阵 <span class="tag">&lt;/contact&gt;</span></h2>
+      <h2 class="section-title"><span class="tag">&lt;contact&gt;</span> 联系 <span class="tag">&lt;/contact&gt;</span></h2>
       <div class="contact-box card reveal">
-        <p class="contact-line">(」°ロ°)」 想找我联机?丢个魔法信息过来吧!</p>
+        <p class="contact-line">合作意向或技术交流,可通过以下渠道联系。</p>
         <div class="contact-links">
           <a class="btn btn-outline" href="mailto:m0ck3r@protonmail.com">Email</a>
           <a class="btn btn-outline" href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
           <a class="btn btn-outline" href="#">Bilibili</a>
           <a class="btn btn-outline" href="#">X / Twitter</a>
         </div>
-        <p class="hint">彩蛋提示:试试键盘上的 ↑↑↓↓←→←→BA (¬‿¬)</p>
+        <p class="hint">// 隐藏指令:↑↑↓↓←→←→BA</p>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p>© 2026 Y0lay · Made with <span class="accent">♥</span> & 大量咖啡因</p>
-    <p class="footer-code">while(alive) { eat(); sleep(); code(); anime(); }</p>
+    <p>© 2026 Y0lay · Powered by <span class="accent">HTML / CSS / JS</span>,无框架无依赖</p>
+    <p class="footer-code">while (alive) { eat(); sleep(); code(); }</p>
   </footer>
 
   <!-- 彩蛋弹窗 -->
   <div id="easter-egg" class="easter-egg hidden">
     <div class="easter-inner">
-      <p class="easter-face">✧*。٩(ˊᗜˋ*)و✧*。</p>
-      <p>恭喜发现隐藏结局!<br>「无论异世界还是生产环境,都要好好活下去。」</p>
+      <p class="easter-face">ACCESS GRANTED</p>
+      <p>隐藏指令已触发。<br>「在生产环境,也要好好活下去。」</p>
       <button id="easter-close" class="btn btn-primary">收下祝福</button>
     </div>
   </div>

@@ -3,46 +3,110 @@
    代码雨 / 樱花 / 打字机 / 滚动渐入 / 数字滚动 / Konami 彩蛋
    ========================================================== */
 
-// ---------- 1. 代码雨背景 ----------
-(function matrixRain() {
-  const canvas = document.getElementById('matrix-canvas');
+// ---------- 1. 背景:尘埃粒子 / 系统日志流 / 雷达扫描 ----------
+(function wastelandBg() {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // -- 漂浮尘埃(灰烬) --
+  const canvas = document.getElementById('dust-canvas');
   const ctx = canvas.getContext('2d');
-  const chars = 'アイウエオカキクケコサシスセソ01{}<>=;$#λΣ&|!?*+ネムラリ';
-  const fontSize = 16;
-  let columns = 0;
-  let drops = [];
+  let W = 0;
+  let H = 0;
+  let parts = [];
+
+  function makePart() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 0.6 + Math.random() * 1.8,
+      vx: 0.06 + Math.random() * 0.22,
+      vy: -(0.04 + Math.random() * 0.16),
+      a: 0.06 + Math.random() * 0.26,
+      tw: Math.random() * Math.PI * 2, // 闪烁相位
+    };
+  }
 
   function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    columns = Math.floor(canvas.width / fontSize);
-    drops = Array.from({ length: columns }, () => Math.floor(Math.random() * -50));
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    parts = Array.from({ length: Math.floor((W * H) / 16000) }, makePart);
   }
 
   resize();
   window.addEventListener('resize', resize);
 
-  function draw() {
-    // 半透明覆盖形成拖尾
-    ctx.fillStyle = 'rgba(13, 8, 33, 0.12)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.font = fontSize + 'px monospace';
-
-    for (let i = 0; i < drops.length; i++) {
-      const char = chars[Math.floor(Math.random() * chars.length)];
-      // 废土色系:灰绿为主,少量警示黄,极少高亮白
-      const r = Math.random();
-      ctx.fillStyle = r > 0.985 ? '#f4f3ee' : (i % 9 === 0 ? '#ffd802' : '#5d6152');
-      ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
-      }
-      drops[i]++;
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#cfcdc2';
+    for (const p of parts) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.tw += 0.02;
+      if (p.x > W + 6) p.x = -6;
+      if (p.y < -6) p.y = H + 6;
+      ctx.globalAlpha = p.a * (0.55 + 0.45 * Math.sin(p.tw));
+      ctx.fillRect(p.x, p.y, p.r, p.r); // 方形颗粒,更像灰烬
     }
+    ctx.globalAlpha = 1;
+    if (!reduced) requestAnimationFrame(frame);
   }
 
-  setInterval(draw, 55);
+  frame(); // 减少动态效果时也保留一帧静态尘埃
+
+  // -- 滚动系统日志流 --
+  const syslog = document.getElementById('syslog');
+  const LOGS = [
+    'sensor[3]: relay heartbeat ok (12ms)',
+    'net: uplink latency 46ms, jitter 3ms',
+    'build: cache hit ratio 94.2%',
+    'watchdog: service "blog" healthy',
+    'auth: session token rotated',
+    'fs: journal sync complete (0 errors)',
+    'sys: gc pause 3ms, heap 12.4MiB',
+    'cron: backup snapshot created',
+    'net: retry backoff 2000ms on ch.7',
+    'kernel: thermal zone 0 at 41C',
+  ];
+  const WARNS = [
+    'WARN power: grid voltage fluctuation',
+    'WARN sensor[7]: signal degraded',
+    'WARN net: packet loss 2.1% on uplink',
+    'WARN storage: sector remap on /dev/sda',
+  ];
+
+  function two(n) { return String(n).padStart(2, '0'); }
+
+  function logLine() {
+    const now = new Date();
+    const ts = two(now.getHours()) + ':' + two(now.getMinutes()) + ':' + two(now.getSeconds());
+    const warn = Math.random() < 0.16;
+    const pool = warn ? WARNS : LOGS;
+    const div = document.createElement('div');
+    div.textContent = ts + ' ' + pool[Math.floor(Math.random() * pool.length)];
+    if (warn) div.className = 'syslog-warn';
+    syslog.appendChild(div);
+    while (syslog.childElementCount > 22) syslog.firstElementChild.remove();
+    setTimeout(logLine, 900 + Math.random() * 1100);
+  }
+
+  if (!reduced) logLine();
+
+  // -- 雷达目标点 --
+  const radar = document.getElementById('radar');
+
+  function blip() {
+    const dot = document.createElement('span');
+    dot.className = 'radar-blip';
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 8 + Math.random() * 46;
+    dot.style.left = 60 + Math.cos(ang) * dist + 'px';
+    dot.style.top = 60 + Math.sin(ang) * dist + 'px';
+    radar.appendChild(dot);
+    setTimeout(() => dot.remove(), 3000);
+    setTimeout(blip, 1800 + Math.random() * 3200);
+  }
+
+  if (!reduced) blip();
 })();
 
 // ---------- 2. 可交互模拟终端 ----------
@@ -59,16 +123,16 @@
     'about.json': [
       '{',
       '  "name": "y0lay",',
-      '  "job": "全栈开发 / 安全爱好者",',
-      '  "anime": ["EVA", "攻壳机动队", "JOJO"],',
-      '  "motto": "代码和老婆,我全都要!"',
+      '  "role": "全栈开发 / 安全研究",',
+      '  "stack": ["TypeScript", "Python", "Go"],',
+      '  "focus": "Web 安全与工程化"',
       '}',
     ].join('\n'),
-    'motto.txt': '写代码是为了给老婆们攒手办钱。',
-    'todo.md': '- [x] 补完本季度新番\n- [ ] 修好上周的 bug\n- [ ] 修好修 bug 时写出的新 bug',
-    '.secret': '试试在页面任意位置输入秘技:↑↑↓↓←→←→BA',
+    'motto.txt': '能自动化的绝不手动,能复现的必有日志。',
+    'todo.md': '- [x] 重构部署脚本\n- [ ] 修复上周的 bug\n- [ ] 修复修 bug 时引入的新 bug',
+    '.secret': '在页面任意位置输入:↑↑↓↓←→←→BA',
   };
-  const dirs = ['projects/', '老婆们/'];
+  const dirs = ['projects/', 'archive/'];
 
   function esc(s) {
     const div = document.createElement('div');
@@ -84,7 +148,7 @@
   }
 
   function printEcho(cmd) {
-    print('<span class="prompt">y0lay@akihabara:~$</span> ' + esc(cmd), 'line-cmd');
+    print('<span class="prompt">y0lay@dev:~$</span> ' + esc(cmd), 'line-cmd');
   }
 
   function scrollToSection(id) {
@@ -96,7 +160,7 @@
       print('<span class="out-cyan">可用命令:</span>');
       print('  help        显示本帮助');
       print('  whoami      我是谁');
-      print('  neofetch    系统信息(二次元版)');
+      print('  neofetch    系统信息');
       print('  ls [-a]     列出文件');
       print('  cat <file>  查看文件内容');
       print('  about       跳转到「关于」');
@@ -110,16 +174,16 @@
       print('<span class="out-dim">提示:↑↓ 翻历史,Tab 补全</span>');
     },
     whoami() {
-      print('y0lay —— <span class="out-pink">全栈码农</span>,二次元浓度 <span class="out-cyan">120%</span>,发量余额不足');
+      print('y0lay — <span class="out-pink">全栈开发 / 安全研究</span>');
     },
     neofetch() {
-      print('<span class="out-cyan">        ∧,,,∧</span>      <span class="out-pink">y0lay</span>@<span class="out-pink">akihabara</span>');
-      print('<span class="out-cyan">       (  ̳• · • ̳)</span>     -----------------');
-      print('<span class="out-cyan">       /    づ♡</span>     <span class="out-purple">OS:</span> ArchLinux(纸糊的)');
-      print('                    <span class="out-purple">Shell:</span> zsh + 颜文字补全');
-      print('                    <span class="out-purple">Editor:</span> VS Code + Vim 键位');
-      print('                    <span class="out-purple">Uptime:</span> 熬夜追番中,勿 kill');
-      print('                    <span class="out-purple">Memory:</span> 老婆名字 998MB / 代码 26MB');
+      print('<span class="out-cyan">   ██  ██</span>       <span class="out-pink">y0lay</span>@<span class="out-pink">dev</span>');
+      print('<span class="out-cyan">    ████</span>        -----------------');
+      print('<span class="out-cyan">     ██</span>         <span class="out-purple">OS:</span> Arch Linux x86_64');
+      print('<span class="out-cyan">     ██</span>         <span class="out-purple">Shell:</span> zsh 5.9');
+      print('                <span class="out-purple">Editor:</span> VS Code + Vim 键位');
+      print('                <span class="out-purple">Uptime:</span> 42 days, 3:14');
+      print('                <span class="out-purple">Memory:</span> 12.4GiB / 64GiB');
     },
     ls(args) {
       const showAll = args.includes('-a');
@@ -135,26 +199,21 @@
       if (files[name] !== undefined) {
         files[name].split('\n').forEach((l) => print('<span class="out-green">' + esc(l) + '</span>'));
       } else if (dirs.includes(name) || dirs.includes(name + '/')) {
-        print('cat: ' + esc(name) + ': 这是个目录啊喂 (#`Д´)', 'out-err');
+        print('cat: ' + esc(name) + ': Is a directory', 'out-err');
       } else {
-        print('cat: ' + esc(name) + ': 没有这个文件', 'out-err');
+        print('cat: ' + esc(name) + ': No such file or directory', 'out-err');
       }
     },
-    cd(args) {
-      const target = args[0] || '~';
-      if (target === '老婆们' || target === '老婆们/') {
-        print('cd: 权限不足:该目录受次元壁保护 (T▽T)', 'out-err');
-      } else {
-        print('cd: 这是前端模拟终端,哪儿也去不了 (¬_¬)', 'out-dim');
-      }
+    cd() {
+      print('cd: 前端模拟终端,无实际文件系统', 'out-dim');
     },
-    about() { print('正在传送至「关于」...', 'out-dim'); scrollToSection('about'); },
-    skills() { print('正在展开技能树...', 'out-dim'); scrollToSection('skills'); },
-    projects() { print('正在打开装备栏...', 'out-dim'); scrollToSection('projects'); },
-    contact() { print('正在绘制召唤阵...', 'out-dim'); scrollToSection('contact'); },
+    about() { print('scrolling to #about ...', 'out-dim'); scrollToSection('about'); },
+    skills() { print('scrolling to #skills ...', 'out-dim'); scrollToSection('skills'); },
+    projects() { print('scrolling to #projects ...', 'out-dim'); scrollToSection('projects'); },
+    contact() { print('scrolling to #contact ...', 'out-dim'); scrollToSection('contact'); },
     echo(args) { print(esc(args.join(' ')) || ''); },
     date() {
-      print(new Date().toLocaleString('zh-CN') + ' <span class="out-dim">// 又是没有新番看的一天吗</span>');
+      print(new Date().toLocaleString('zh-CN'));
     },
     history() {
       history.forEach((cmd, i) => print('<span class="out-dim">' + (i + 1) + '</span>  ' + esc(cmd)));
@@ -162,14 +221,14 @@
     clear() { output.innerHTML = ''; },
     sudo(args) {
       if (args.join(' ').includes('rm -rf')) {
-        print('sudo: 已阻止危险操作。这可是我的主页!(╯°□°)╯︵ ┻━┻', 'out-err');
+        print('sudo: 操作已拦截:目标受保护', 'out-err');
       } else {
-        print('sudo: y0lay 不在 sudoers 名单里。此事将被上报给老婆。', 'out-err');
+        print('sudo: user is not in the sudoers file. This incident will be reported.', 'out-err');
       }
     },
-    exit() { print('exit: 想跑?这个终端没有出口 (¬‿¬)', 'out-dim'); },
-    vim() { print('vim: 进去容易出来难,为了你好还是别开了', 'out-dim'); },
-    ping(args) { print('PING ' + esc(args[0] || '二次元') + ': 次元壁阻隔,100% packet loss', 'out-dim'); },
+    exit() { print('exit: 会话由前端托管,无法断开', 'out-dim'); },
+    vim() { print('vim: 建议先确认你知道怎么退出', 'out-dim'); },
+    ping(args) { print('PING ' + esc(args[0] || 'localhost') + ': 沙箱环境,网络不可达,100% packet loss', 'out-dim'); },
   };
 
   function run(raw) {
@@ -232,9 +291,10 @@
   body.addEventListener('click', () => input.focus());
 
   // 开机欢迎语
-  print('<span class="out-cyan">Welcome to y0lay OS v2.6.0</span> <span class="out-dim">(kernel: 二次元 6.0-akihabara)</span>');
+  print('<span class="out-cyan">y0lay-terminal v2.6.0</span> <span class="out-dim">(kernel 6.9.0-wasteland)</span>');
+  print('<span class="out-dim">Last login: from 127.0.0.1</span>');
   print('');
-  print('输入 <span class="out-cyan">help</span> 查看可用命令,或者随便敲点什么 (๑•̀ㅂ•́)و✧');
+  print('输入 <span class="out-cyan">help</span> 查看可用命令。');
   print('');
 })();
 
@@ -341,9 +401,90 @@
   schedule();
 })();
 
-// ---------- 7. 控制台招呼(程序员的仪式感) ----------
+// ---------- 7. 全局文字乱码闪烁 ----------
+// 随机抓取页面文本节点,把其中一段字符临时替换成乱码,抖几帧后恢复原文。
+// 只改 nodeValue 不动 DOM 结构,恢复时按快照原样写回,对内容零破坏。
+(function textCorruption() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const GLYPHS = '█▓▒░#$%&@*+=?<>/\\|~^!¥§アイウエオカキクケコ0123456789';
+  const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT']);
+  const busy = new WeakSet(); // 正在乱码中的节点,防止重复处理
+
+  function randGlyph() {
+    return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+  }
+
+  // 收集当前可见的、长度够的文本节点
+  function collectNodes() {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent || SKIP_TAGS.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
+        if (parent.closest('#glitch-fx')) return NodeFilter.FILTER_REJECT;
+        if (node.nodeValue.trim().length < 4) return NodeFilter.FILTER_REJECT;
+        // 跳过隐藏元素(如未触发的彩蛋弹窗)
+        if (parent.getClientRects().length === 0) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    return nodes;
+  }
+
+  // 把 original 中 [start, end) 区间替换为随机乱码(保留空白字符,维持排版)
+  function scrambled(original, start, end) {
+    let out = original.slice(0, start);
+    for (let i = start; i < end; i++) {
+      const ch = original[i];
+      out += /\s/.test(ch) ? ch : randGlyph();
+    }
+    return out + original.slice(end);
+  }
+
+  function corruptOne(node) {
+    const original = node.nodeValue;
+    const len = original.length;
+    // 随机选一块 30%~70% 的连续区间
+    const span = Math.max(2, Math.floor(len * (0.3 + Math.random() * 0.4)));
+    const start = Math.floor(Math.random() * (len - span));
+    const end = start + span;
+
+    busy.add(node);
+    let frames = 2 + Math.floor(Math.random() * 3); // 抖 2~4 帧
+    const timer = setInterval(() => {
+      if (frames-- > 0) {
+        node.nodeValue = scrambled(original, start, end);
+      } else {
+        clearInterval(timer);
+        node.nodeValue = original; // 按快照无损恢复
+        busy.delete(node);
+      }
+    }, 90);
+  }
+
+  function burst() {
+    const nodes = collectNodes().filter((n) => !busy.has(n));
+    // 每轮随机腐蚀 2~4 个节点
+    const count = 2 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < count && nodes.length; i++) {
+      const idx = Math.floor(Math.random() * nodes.length);
+      corruptOne(nodes.splice(idx, 1)[0]);
+    }
+    schedule();
+  }
+
+  function schedule() {
+    setTimeout(burst, 500 + Math.random() * 1300);
+  }
+
+  schedule();
+})();
+
+// ---------- 8. 控制台招呼(程序员的仪式感) ----------
 console.log(
-  '%c(ノ≧∀≦)ノ 欢迎光临 Y0lay 的秘密基地!\n%c既然都打开控制台了,不如来一起写代码?',
-  'color:#ffd802;font-size:16px;font-weight:bold;',
-  'color:#a3b18a;font-size:12px;'
+  '%cY0LAY TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
+  'color:#0b0b0c;background:#ffd802;font-size:14px;font-weight:bold;padding:2px 8px;',
+  'color:#77766e;font-size:12px;padding-left:8px;'
 );
