@@ -1,6 +1,6 @@
 /* ==========================================================
    Y0lay 个人主页脚本
-   代码雨 / 樱花 / 打字机 / 滚动渐入 / 数字滚动 / Konami 彩蛋
+   监控站背景 / 可交互终端 / 滚动渐入 / 故障特效 / 文字乱码 / 隐藏指令
    ========================================================== */
 
 // ---------- 1. 背景:尘埃粒子 / 系统日志流 / 雷达扫描 ----------
@@ -130,7 +130,7 @@
     ].join('\n'),
     'motto.txt': '能自动化的绝不手动,能复现的必有日志。',
     'todo.md': '- [x] 重构部署脚本\n- [ ] 修复上周的 bug\n- [ ] 修复修 bug 时引入的新 bug',
-    '.secret': '在页面任意位置输入:↑↑↓↓←→←→BA',
+    '.secret': '存在一条未注册指令:override',
   };
   const dirs = ['projects/', 'archive/'];
 
@@ -163,10 +163,10 @@
       print('  neofetch    系统信息');
       print('  ls [-a]     列出文件');
       print('  cat <file>  查看文件内容');
-      print('  about       跳转到「关于」');
-      print('  skills      跳转到「技能树」');
-      print('  projects    跳转到「装备栏」');
-      print('  contact     跳转到「召唤阵」');
+      print('  about       跳转到 #about');
+      print('  skills      跳转到 #skills');
+      print('  projects    跳转到 #projects');
+      print('  contact     跳转到 #contact');
       print('  echo <msg>  复读机');
       print('  date        现在几点了');
       print('  history     命令历史');
@@ -227,6 +227,13 @@
       }
     },
     exit() { print('exit: 会话由前端托管,无法断开', 'out-dim'); },
+    // 未注册指令,不在 help 中列出,线索在 .secret
+    override() {
+      print('override: 权限校验通过,正在解除访问限制 ...', 'out-dim');
+      setTimeout(() => {
+        document.getElementById('easter-egg').classList.remove('hidden');
+      }, 400);
+    },
     vim() { print('vim: 建议先确认你知道怎么退出', 'out-dim'); },
     ping(args) { print('PING ' + esc(args[0] || 'localhost') + ': 沙箱环境,网络不可达,100% packet loss', 'out-dim'); },
   };
@@ -339,22 +346,9 @@
   });
 })();
 
-// ---------- 5. Konami 秘技彩蛋 ----------
-(function konami() {
-  const code = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
-                'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
-                'KeyB', 'KeyA'];
-  let pos = 0;
+// ---------- 5. 隐藏指令弹窗 ----------
+(function easterModal() {
   const egg = document.getElementById('easter-egg');
-
-  document.addEventListener('keydown', (e) => {
-    pos = (e.code === code[pos]) ? pos + 1 : (e.code === code[0] ? 1 : 0);
-    if (pos === code.length) {
-      pos = 0;
-      egg.classList.remove('hidden');
-    }
-  });
-
   document.getElementById('easter-close').addEventListener('click', () => {
     egg.classList.add('hidden');
   });

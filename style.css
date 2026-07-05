@@ -24,7 +24,10 @@
   /* 切角:右上角削一刀,工业面板语言 */
   --notch: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
 
-  --mono: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+  /* 分层字体:界面/中文用系统黑体,等宽只给终端、代码与工业标注 */
+  --sans: "HarmonyOS Sans SC", "MiSans", "PingFang SC", "Microsoft YaHei",
+          "Noto Sans SC", system-ui, -apple-system, sans-serif;
+  --mono: "Cascadia Code", "JetBrains Mono", Consolas, ui-monospace, monospace;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,9 +37,30 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--mono);
+  font-family: var(--sans);
   overflow-x: hidden;
   line-height: 1.6;
+}
+
+/* 等宽字体白名单:终端 / 代码 / 标注类元素 */
+.nav-logo,
+.nav-links a,
+.hero-title,
+.terminal,
+#term-input,
+.code-block,
+.tag,
+.project-icon,
+.tags span,
+.stat-num,
+.skill-pct,
+.hint,
+.footer-code,
+.easter-face,
+.terminal-title,
+#syslog,
+body::after {
+  font-family: var(--mono);
 }
 
 /* 废土烟尘:低饱和灰橄榄雾 + 一缕警示黄,缓慢漂移供玻璃透出 */
@@ -430,7 +454,6 @@ body::after {
   border: none;
   outline: none;
   color: var(--text);
-  font-family: var(--mono);
   font-size: inherit;
   caret-color: var(--accent);
   padding: 0;
@@ -444,7 +467,8 @@ body::after {
   padding: 0.7rem 1.8rem;
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
   text-decoration: none;
-  font-family: var(--mono);
+  font-family: var(--sans);
+  font-weight: 500;
   font-size: 0.88rem;
   letter-spacing: 2px;
   border: none;
