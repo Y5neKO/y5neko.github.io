@@ -300,7 +300,48 @@
   });
 })();
 
-// ---------- 6. 控制台招呼(程序员的仪式感) ----------
+// ---------- 6. 全屏故障艺术特效 ----------
+(function glitchFx() {
+  // 尊重系统的"减少动态效果"设置
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const root = document.documentElement;
+  const bands = document.querySelectorAll('.gfx-band');
+
+  // 生成电视噪点纹理
+  const noise = document.querySelector('.gfx-noise');
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  const img = ctx.createImageData(128, 128);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = Math.random() * 255;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+    img.data[i + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  noise.style.backgroundImage = 'url(' + c.toDataURL() + ')';
+
+  // 随机故障爆发:随机化条带位置后挂上 glitching 类
+  function burst() {
+    bands.forEach((b) => {
+      b.style.top = Math.random() * 100 + '%';
+      b.style.height = 4 + Math.random() * 42 + 'px';
+      b.style.setProperty('--shift', (Math.random() * 18 - 9).toFixed(1) + 'px');
+    });
+    root.classList.add('glitching');
+    setTimeout(() => root.classList.remove('glitching'), 240);
+    schedule();
+  }
+
+  function schedule() {
+    setTimeout(burst, 2600 + Math.random() * 5400);
+  }
+
+  schedule();
+})();
+
+// ---------- 7. 控制台招呼(程序员的仪式感) ----------
 console.log(
   '%c(ノ≧∀≦)ノ 欢迎光临 Y0lay 的秘密基地!\n%c既然都打开控制台了,不如来一起写代码?',
   'color:#ff2e88;font-size:16px;font-weight:bold;',

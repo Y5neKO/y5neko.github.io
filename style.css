@@ -558,6 +558,140 @@ body::before {
 
 .footer-code { margin-top: 0.4rem; color: var(--purple); opacity: 0.8; }
 
+/* ---------- 全屏故障艺术特效 ----------
+   常驻:CRT 扫描线 / 电视噪点 / 慢速扫光
+   爆发:html.glitching 期间 RGB 色散 + 撕裂条带 + 页面抖动(JS 随机触发) */
+#glitch-fx {
+  position: fixed;
+  inset: 0;
+  z-index: 150; /* 罩住内容和导航,但在彩蛋弹窗(200)之下 */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* CRT 扫描线 */
+.gfx-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    rgba(0, 0, 0, 0.16) 2px 4px
+  );
+  opacity: 0.55;
+}
+
+/* 缓慢下移的扫光带 */
+.gfx-scanbeam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 140px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(125, 249, 255, 0.045) 45%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(125, 249, 255, 0.045) 55%,
+    transparent
+  );
+  animation: beam-sweep 8s linear infinite;
+}
+
+@keyframes beam-sweep {
+  from { top: -20%; }
+  to   { top: 110%; }
+}
+
+/* 电视噪点(纹理由 JS 生成) */
+.gfx-noise {
+  position: absolute;
+  inset: -50%;
+  background-repeat: repeat;
+  opacity: 0.05;
+  animation: noise-jiggle 0.4s steps(4) infinite;
+}
+
+@keyframes noise-jiggle {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-18%, 6%); }
+  50%  { transform: translate(9%, -12%); }
+  75%  { transform: translate(-6%, 14%); }
+  100% { transform: translate(12%, 3%); }
+}
+
+/* RGB 色散层:平时隐藏,爆发时闪烁 */
+.gfx-rgb {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+
+.gfx-rgb-r { background: rgba(255, 0, 80, 0.1); }
+.gfx-rgb-c { background: rgba(0, 240, 255, 0.1); }
+
+html.glitching .gfx-rgb-r { animation: rgb-split-r 0.22s steps(3) both; }
+html.glitching .gfx-rgb-c { animation: rgb-split-c 0.22s steps(3) both; }
+
+@keyframes rgb-split-r {
+  0%   { opacity: 1; transform: translateX(7px); }
+  50%  { opacity: 0.5; transform: translateX(-4px); }
+  100% { opacity: 0; transform: none; }
+}
+
+@keyframes rgb-split-c {
+  0%   { opacity: 1; transform: translateX(-7px); }
+  50%  { opacity: 0.5; transform: translateX(5px); }
+  100% { opacity: 0; transform: none; }
+}
+
+/* 撕裂条带:直接对底下真实像素做色相偏移 + 错位 */
+.gfx-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  opacity: 0;
+}
+
+html.glitching .gfx-band {
+  opacity: 1;
+  backdrop-filter: hue-rotate(120deg) saturate(300%);
+  -webkit-backdrop-filter: hue-rotate(120deg) saturate(300%);
+  animation: band-tear 0.22s steps(2) both;
+}
+
+@keyframes band-tear {
+  0%   { transform: translateX(var(--shift, 8px)); }
+  60%  { transform: translateX(calc(var(--shift, 8px) * -0.6)); }
+  100% { transform: none; opacity: 0; }
+}
+
+/* 爆发时页面内容抖动(短促 keyframe,播完即恢复,不影响毛玻璃常态) */
+html.glitching .hero,
+html.glitching main,
+html.glitching .footer {
+  animation: page-jitter 0.22s steps(2) both;
+}
+
+@keyframes page-jitter {
+  0%   { transform: translate(3px, 0) skewX(0.5deg); }
+  33%  { transform: translate(-4px, 2px); }
+  66%  { transform: translate(2px, -1px) skewX(-0.7deg); }
+  100% { transform: none; }
+}
+
+/* 导航是 fixed + translateX 居中,单独给一套含位移的抖动 */
+html.glitching .navbar {
+  animation: nav-jitter 0.22s steps(2) both;
+}
+
+@keyframes nav-jitter {
+  0%   { transform: translateX(calc(-50% + 4px)); }
+  50%  { transform: translateX(calc(-50% - 3px)); }
+  100% { transform: translateX(-50%); }
+}
+
 /* ---------- 彩蛋 ---------- */
 .easter-egg {
   position: fixed;
