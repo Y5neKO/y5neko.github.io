@@ -34,10 +34,12 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html {
-  scroll-behavior: smooth;
-  /* 整页翻页滚动:每次滚动吸附到一屏 */
+  /* 整页翻页:JS 监控切台式硬切换(无平滑动画),吸附仅兜底对齐 */
   scroll-snap-type: y mandatory;
 }
+
+/* monitorCut 关闭时回退平滑滚动翻页 */
+html.fx-off-monitor-cut { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
@@ -56,7 +58,6 @@ body {
 .code-block,
 .tag,
 .stat-num,
-.hint,
 .footer-code,
 .easter-face,
 .terminal-title,
@@ -473,6 +474,7 @@ body::after {
   padding: 1.1rem 1.3rem 1.2rem;
   height: 320px;
   overflow-y: auto;
+  overscroll-behavior: contain; /* 滚到头不把滚动链传给页面 */
   font-size: 0.88rem;
   line-height: 1.75;
   cursor: text;
@@ -566,17 +568,6 @@ body::after {
   box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.5);
   background: rgba(0, 240, 255, 0.05);
 }
-
-.scroll-hint {
-  position: absolute;
-  bottom: 1.4rem;
-  font-size: 0.72rem;
-  letter-spacing: 3px;
-  color: var(--text-dim);
-  animation: bob 1.6s ease-in-out infinite;
-}
-
-@keyframes bob { 50% { transform: translateY(6px); } }
 
 /* ---------- 通用 section:每个区块占满一屏并吸附 ---------- */
 .section {
@@ -701,6 +692,7 @@ body::after {
   min-height: 0;
   font-size: 0.88rem;
   overflow: auto;
+  overscroll-behavior: contain;
   line-height: 1.75;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 240, 255, 0.3) transparent;
@@ -777,6 +769,10 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  max-height: clamp(420px, 62vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain; /* 滚到头不把滚动链传给页面 */
+  padding-right: 4px;
 }
 
 .proj-item {
@@ -886,6 +882,30 @@ body::after {
 
 /* hover 时预览图 RGB 通道短暂分离,抖两轮后落定 */
 .proj-preview:hover img { animation: img-rgb-split 0.32s steps(3) 2; }
+
+/* 无预览图时的占位:字符雪花 + 缩写字符 */
+.proj-preview-noimg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background:
+    repeating-linear-gradient(45deg, #0d1016 0 2px, transparent 2px 14px),
+    var(--bg);
+}
+
+.proj-noimg-text {
+  font-family: var(--mono);
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  color: var(--line);
+  text-shadow: 2px 0 var(--accent-2), -2px 0 var(--accent);
+  opacity: 0.6;
+  user-select: none;
+}
+
+.proj-preview:hover .proj-noimg-text { animation: img-rgb-split 0.32s steps(3) 2; }
 
 @keyframes img-rgb-split {
   0%   { filter: saturate(0.95) drop-shadow(3px 0 rgba(255, 42, 109, 0.5)) drop-shadow(-3px 0 rgba(0, 240, 255, 0.5)); transform: translateX(1px); }
@@ -1045,6 +1065,7 @@ body::after {
 .proj-modal-body {
   padding: 1.6rem 1.8rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 240, 255, 0.3) transparent;
 }
@@ -1069,7 +1090,6 @@ body::after {
 
 .contact-links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
 
-.hint { margin-top: 1.6rem; font-size: 0.75rem; letter-spacing: 1px; color: var(--text-dim); }
 
 /* ---------- 页脚(位于联系页底部) ---------- */
 #contact .section-title { margin-top: auto; }
@@ -1352,9 +1372,104 @@ html.glitching-3 .gfx-block {
   100% { transform: none; filter: none; }
 }
 
+/* CRT 关机:关闭时压回一条亮线、过曝、熄灭;由 JS 挂 .closing 播完再真正隐藏 */
+.proj-modal.closing .proj-modal-inner,
+.easter-egg.closing .easter-inner {
+  animation: crt-off 0.26s cubic-bezier(0.6, 0, 0.85, 1) both;
+}
+
+/* 遮罩在亮线熄灭后跟着淡出,期间不再响应点击 */
+.proj-modal.closing,
+.easter-egg.closing {
+  pointer-events: none;
+  animation: overlay-out 0.3s linear both;
+}
+
+@keyframes crt-off {
+  0%   { transform: none; filter: none; opacity: 1; }
+  55%  { transform: scaleY(0.012) scaleX(1.02); filter: brightness(2.8); opacity: 1; }
+  80%  { transform: scaleY(0.006) scaleX(0.55); filter: brightness(4); opacity: 1; }
+  100% { transform: scaleY(0.004) scaleX(0.02); filter: brightness(5); opacity: 0; }
+}
+
+@keyframes overlay-out {
+  0%   { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .easter-face { font-size: 1.6rem; color: var(--accent); margin-bottom: 1rem; }
 
 .easter-inner button { margin-top: 1.4rem; }
+
+/* ---------- 切台过渡:雪花噪点遮罩 + OSD 频道标签 ----------
+   翻页硬切的瞬间由 JS 点亮 #channel-cut 约 200ms,底下完成切换;
+   放在扫描线层(z-index 999)之下,雪花看起来仍"在显示器里" */
+#channel-cut {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  pointer-events: none;
+  display: none;
+  overflow: hidden;
+  background: #050508;
+}
+
+#channel-cut.on { display: block; }
+
+/* 纹理由 JS 复用电视噪点 canvas 注入 */
+.cut-noise {
+  position: absolute;
+  inset: -50%;
+  background-repeat: repeat;
+  opacity: 0.55;
+  animation: noise-jiggle 0.1s steps(3) infinite;
+}
+
+/* 横向撕裂条:品红/青错位扫过雪花,位置每次由 JS 随机 */
+.cut-tear {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  height: 14px;
+  background: linear-gradient(90deg, rgba(255, 42, 109, 0.55), rgba(0, 240, 255, 0.55));
+  mix-blend-mode: screen;
+  animation: cut-tear-shift 0.08s steps(2) infinite;
+}
+
+@keyframes cut-tear-shift {
+  0%   { transform: translateX(-16px) scaleY(1); }
+  50%  { transform: translateX(12px) scaleY(2.2); }
+  100% { transform: translateX(-6px) scaleY(0.8); }
+}
+
+#channel-osd {
+  position: fixed;
+  top: 86px;
+  right: 5vw;
+  z-index: 998;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  background: rgba(5, 5, 8, 0.75);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  padding: 0.3rem 0.7rem;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+/* 锁台后 OSD 闪两下再常亮,由 JS 定时移除类后淡出 */
+#channel-osd.on { animation: osd-blink 0.5s steps(1, end) both; opacity: 1; }
+
+@keyframes osd-blink {
+  0%   { opacity: 1; }
+  20%  { opacity: 0; }
+  35%  { opacity: 1; }
+  55%  { opacity: 0; }
+  70%  { opacity: 1; }
+}
 
 /* ---------- config.json 特效开关 ----------
    JS 读取 config.json,把关闭项映射为 <html> 上的 fx-off-* 类,

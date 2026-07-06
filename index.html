@@ -37,6 +37,15 @@
     <div class="gfx-block"></div>
   </div>
 
+  <!-- 切台过渡:雪花噪点遮罩 + OSD 频道标签 -->
+  <div id="channel-cut" aria-hidden="true">
+    <div class="cut-noise"></div>
+    <div class="cut-tear"></div>
+    <div class="cut-tear"></div>
+    <div class="cut-tear"></div>
+  </div>
+  <div id="channel-osd" aria-hidden="true"></div>
+
   <!-- 导航栏 -->
   <nav class="navbar">
     <div class="nav-logo glitch" data-text="&lt;Y5neKO /&gt;">&lt;Y5neKO /&gt;</div>
@@ -81,7 +90,6 @@
         <a href="#contact" class="btn btn-ghost">联系方式</a>
       </div>
     </div>
-    <div class="scroll-hint">▼ 向下滚动 ▼</div>
   </header>
 
   <main>
@@ -140,6 +148,31 @@
             <span class="proj-idx">03</span>
             <span class="proj-name">Mon3trProject</span>
             <span class="proj-lang">Python</span>
+          </li>
+          <li class="proj-item" data-proj="ycrypto" role="tab" tabindex="0">
+            <span class="proj-idx">04</span>
+            <span class="proj-name">YCryptoTools</span>
+            <span class="proj-lang">Java</span>
+          </li>
+          <li class="proj-item" data-proj="quickred" role="tab" tabindex="0">
+            <span class="proj-idx">05</span>
+            <span class="proj-name">QuickRedTools</span>
+            <span class="proj-lang">Java</span>
+          </li>
+          <li class="proj-item" data-proj="ssreport" role="tab" tabindex="0">
+            <span class="proj-idx">06</span>
+            <span class="proj-name">SSReportTools</span>
+            <span class="proj-lang">Java</span>
+          </li>
+          <li class="proj-item" data-proj="suo5node" role="tab" tabindex="0">
+            <span class="proj-idx">07</span>
+            <span class="proj-name">Suo5forNodejs</span>
+            <span class="proj-lang">JavaScript</span>
+          </li>
+          <li class="proj-item" data-proj="ysock" role="tab" tabindex="0">
+            <span class="proj-idx">08</span>
+            <span class="proj-name">YSOCK</span>
+            <span class="proj-lang">Go</span>
           </li>
         </ul>
 
@@ -230,6 +263,149 @@
               </div>
             </div>
           </article>
+
+          <!-- YCryptoTools -->
+          <article class="proj-panel" data-proj="ycrypto">
+            <div class="proj-preview proj-preview-noimg">
+              <span class="proj-noimg-text">YCT</span>
+            </div>
+            <div class="proj-info">
+              <div class="proj-head">
+                <h3>YCryptoTools</h3>
+                <span class="proj-star" data-repo="Y5neKO/YCryptoTools">★ <span class="star-num">…</span></span>
+              </div>
+              <div class="proj-body">
+                <p class="proj-desc">前端加解密 BurpSuite 插件,加解密请求响应数据,方便渗透测试中分析 HTTP 流量</p>
+                <ul class="proj-features">
+                  <li>预置请求参数匹配规则(GET参数、POST参数、GET和POST参数)</li>
+                  <li>预置请求参数格式匹配(x-www、JSON)</li>
+                  <li>内置算法:URL、AES、DES、RSA、BASE64、MD5、SHA-1、SM2、SM3、SM4</li>
+                </ul>
+                <div class="proj-tags">
+                  <span>Java</span><span>BurpSuite Plugin</span><span>JDK 8u421</span>
+                </div>
+              </div>
+              <div class="proj-actions">
+                <button class="btn btn-ghost proj-more">完整介绍</button>
+                <a class="btn btn-primary" href="https://github.com/Y5neKO/YCryptoTools" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- QuickRedTools -->
+          <article class="proj-panel" data-proj="quickred">
+            <div class="proj-preview proj-preview-noimg">
+              <span class="proj-noimg-text">QRT</span>
+            </div>
+            <div class="proj-info">
+              <div class="proj-head">
+                <h3>QuickRedTools</h3>
+                <span class="proj-star" data-repo="Y5neKO/QuickRedTools">★ <span class="star-num">…</span></span>
+              </div>
+              <div class="proj-body">
+                <p class="proj-desc">基于 JavaFX 开发的渗透测试快速启动工具</p>
+                <ul class="proj-features">
+                  <li>环境管理:支持配置 Java、Python、Go、Gem、Node.js 等多种开发环境</li>
+                  <li>工具分类管理,便于归类各类渗透工具</li>
+                  <li>一键启动,支持自定义启动参数与工作目录</li>
+                  <li>配置数据 JSON 持久化,重启不丢失</li>
+                </ul>
+                <div class="proj-tags">
+                  <span>Java</span><span>JavaFX</span>
+                </div>
+              </div>
+              <div class="proj-actions">
+                <button class="btn btn-ghost proj-more">完整介绍</button>
+                <a class="btn btn-primary" href="https://github.com/Y5neKO/QuickRedTools" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- SSReportTools -->
+          <article class="proj-panel" data-proj="ssreport">
+            <div class="proj-preview proj-preview-noimg">
+              <span class="proj-noimg-text">SST</span>
+            </div>
+            <div class="proj-info">
+              <div class="proj-head">
+                <h3>SSReportTools</h3>
+                <span class="proj-star" data-repo="Y5neKO/SSReportTools">★ <span class="star-num">…</span></span>
+              </div>
+              <div class="proj-body">
+                <p class="proj-desc">基于 JavaFX 开发的图形化安服/渗透测试报告自动生成工具,安服渗透仔摸鱼划水必备</p>
+                <ul class="proj-features">
+                  <li>占位符 + OpenXML 解析替换,自动生成安服/渗透测试报告</li>
+                  <li>漏洞库编辑与自定义报告模板制作</li>
+                  <li>AI 辅助生成漏洞描述</li>
+                  <li>TODO:批量生成报告</li>
+                </ul>
+                <div class="proj-tags">
+                  <span>Java</span><span>JavaFX</span><span>JDK 8</span>
+                </div>
+              </div>
+              <div class="proj-actions">
+                <button class="btn btn-ghost proj-more">完整介绍</button>
+                <a class="btn btn-primary" href="https://github.com/Y5neKO/SSReportTools" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- Suo5forNodejs -->
+          <article class="proj-panel" data-proj="suo5node">
+            <div class="proj-preview proj-preview-noimg">
+              <span class="proj-noimg-text">S5N</span>
+            </div>
+            <div class="proj-info">
+              <div class="proj-head">
+                <h3>Suo5forNodejs</h3>
+                <span class="proj-star" data-repo="Y5neKO/Suo5forNodejs">★ <span class="star-num">…</span></span>
+              </div>
+              <div class="proj-body">
+                <p class="proj-desc">适用于 Node.js 环境下的 Suo5 内存马</p>
+                <ul class="proj-features">
+                  <li>Next.js 自动检测,支持全双工/半双工/短连接三种模式</li>
+                  <li>适配 CVE-2025-55182 / CVE-2025-66478(React Server Components RCE / Next.js RCE)</li>
+                  <li>兼容 Suo5 客户端 v2.0.0</li>
+                </ul>
+                <div class="proj-tags">
+                  <span>JavaScript</span><span>Node.js</span><span>Suo5</span>
+                </div>
+              </div>
+              <div class="proj-actions">
+                <button class="btn btn-ghost proj-more">完整介绍</button>
+                <a class="btn btn-primary" href="https://github.com/Y5neKO/Suo5forNodejs" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- YSOCK -->
+          <article class="proj-panel" data-proj="ysock">
+            <div class="proj-preview proj-preview-noimg">
+              <span class="proj-noimg-text">YSK</span>
+            </div>
+            <div class="proj-info">
+              <div class="proj-head">
+                <h3>YSOCK</h3>
+                <span class="proj-star" data-repo="Y5neKO/YSOCK">★ <span class="star-num">…</span></span>
+              </div>
+              <div class="proj-body">
+                <p class="proj-desc">基于 Web 的 SOCKS5 隧道代理工具,通过 PHP/JSP/JSPX/ASPX/ASP 脚本在目标服务器建立加密隧道</p>
+                <ul class="proj-features">
+                  <li>多 Payload 支持:PHP / JSP / JSPX / ASPX / ASP</li>
+                  <li>三种传输模式自动切换:Full Duplex / Half Duplex / Classic</li>
+                  <li>加密通信:SHA256-CTR + HMAC-SHA256</li>
+                  <li>多路复用:单 HTTP 连接承载多个 SOCKS5 会话</li>
+                </ul>
+                <div class="proj-tags">
+                  <span>Go</span><span>SOCKS5</span><span>Web Shell</span>
+                </div>
+              </div>
+              <div class="proj-actions">
+                <button class="btn btn-ghost proj-more">完整介绍</button>
+                <a class="btn btn-primary" href="https://github.com/Y5neKO/YSOCK" target="_blank" rel="noopener">GitHub ↗</a>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -243,7 +419,6 @@
           <a class="btn btn-outline" href="https://github.com/Y5neKO" target="_blank" rel="noopener">GitHub</a>
           <a class="btn btn-outline" href="https://space.bilibili.com/35199034" target="_blank" rel="noopener">Bilibili</a>
         </div>
-        <p class="hint">// 提示:终端支持 ls -a</p>
       </div>
 
       <footer class="footer">

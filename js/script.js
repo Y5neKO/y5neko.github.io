@@ -23,6 +23,7 @@ const FX = {
   statScramble: true,     // 统计数字滚动乱码帧
   crtModal: true,         // 弹窗 CRT 开机动画
   snapBurst: true,        // 翻页切换时触发微故障
+  monitorCut: true,       // 翻页监控切台:雪花硬切+OSD(关闭回退平滑滚动)
 };
 
 // 特效间共享:乱码字符集 / 正在乱码中的文本节点(防互相踩)
@@ -42,6 +43,28 @@ function scrambled(original, start, end) {
     out += /\s/.test(ch) ? ch : randGlyph();
   }
   return out + original.slice(end);
+}
+
+// CRT 关机式关闭悬浮窗:先播 .closing 动画再真正隐藏(开关关闭/减动效时直接隐藏)
+function crtClose(overlayEl) {
+  if (overlayEl.classList.contains('hidden') || overlayEl.classList.contains('closing')) return;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!FX.crtModal || reduced) {
+    overlayEl.classList.add('hidden');
+    return;
+  }
+  overlayEl.classList.add('closing');
+  clearTimeout(overlayEl._crtCloseTimer);
+  overlayEl._crtCloseTimer = setTimeout(() => {
+    overlayEl.classList.remove('closing');
+    overlayEl.classList.add('hidden');
+  }, 300);
+}
+
+// 关机动画播到一半又要打开时,取消收尾定时器并复位状态
+function crtCancelClose(overlayEl) {
+  clearTimeout(overlayEl._crtCloseTimer);
+  overlayEl.classList.remove('closing');
 }
 
 const fxReady = fetch('config.json', { cache: 'no-store' })
@@ -217,7 +240,10 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   }
 
   function scrollToSection(id) {
-    document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    const el = document.getElementById(id);
+    // 走雪花切台;monitorCut 关闭时回退到 CSS 平滑滚动
+    if (gfxApi.channelJump) gfxApi.channelJump(el);
+    else el.scrollIntoView({ behavior: 'auto' });
   }
 
   const commands = {
@@ -294,7 +320,9 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     override() {
       print('override: 权限校验通过,正在解除访问限制 ...', 'out-dim');
       setTimeout(() => {
-        document.getElementById('easter-egg').classList.remove('hidden');
+        const egg = document.getElementById('easter-egg');
+        crtCancelClose(egg);
+        egg.classList.remove('hidden');
       }, 400);
     },
     vim() { print('vim: 建议先确认你知道怎么退出', 'out-dim'); },
@@ -437,10 +465,11 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     modalBody.innerHTML = '';
     if (head) modalBody.appendChild(head.cloneNode(true));
     if (body) modalBody.appendChild(body.cloneNode(true));
+    crtCancelClose(modal);
     modal.classList.remove('hidden');
   }
 
-  function closeModal() { modal.classList.add('hidden'); }
+  function closeModal() { crtClose(modal); }
 
   panels.forEach((panel) => {
     const more = panel.querySelector('.proj-more');
@@ -560,7 +589,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 (function easterModal() {
   const egg = document.getElementById('easter-egg');
   document.getElementById('easter-close').addEventListener('click', () => {
-    egg.classList.add('hidden');
+    crtClose(egg);
   });
 })();
 
@@ -624,6 +653,12 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   function schedule() {
     setTimeout(burst, 2600 + Math.random() * 5400);
   }
+
+  // 立即掐断正在播放的爆发:切台前调用,防止爆发的 transform
+  // 挪动吸附区域,导致强制吸附把刚翻过去的页面又拉回来
+  gfxApi.stopBurst = function stopBurst() {
+    root.classList.remove('glitching', 'glitching-2', 'glitching-3');
+  };
 
   // 轻量单次爆发:供翻页微故障等外部触发,不进入自调度循环
   gfxApi.flash = function flash() {
@@ -819,7 +854,189 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   });
 })();
 
-// ---------- 14. 控制台招呼(程序员的仪式感) ----------
+// ---------- 14. 整页硬切换:模拟监控信号切台,滚轮/键盘翻页无过渡 ----------
+(function monitorCut() {
+  const pages = Array.from(document.querySelectorAll('.hero, .section'));
+  if (pages.length < 2) return;
+
+  // 与 CSS 断点一致:小屏内容超一屏,保留自由滚动
+  const mobile = window.matchMedia('(max-width: 760px)');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // 切台过渡元素:雪花遮罩 + OSD 频道标签
+  const overlay = document.getElementById('channel-cut');
+  const cutNoise = overlay ? overlay.querySelector('.cut-noise') : null;
+  const tears = overlay ? overlay.querySelectorAll('.cut-tear') : [];
+  const osd = document.getElementById('channel-osd');
+  let overlayTimer = 0;
+  let osdTimer = 0;
+
+  function overlayOpen() {
+    const modal = document.getElementById('proj-modal');
+    const egg = document.getElementById('easter-egg');
+    return (
+      (modal && !modal.classList.contains('hidden')) ||
+      (egg && !egg.classList.contains('hidden'))
+    );
+  }
+
+  // 当前所在页:取吸附点离视口顶最近的一屏
+  function currentIndex() {
+    const y = window.scrollY;
+    let best = 0;
+    let bestDist = Infinity;
+    pages.forEach((p, i) => {
+      const d = Math.abs(p.offsetTop - y);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    return best;
+  }
+
+  function cutTo(i) {
+    const idx = Math.max(0, Math.min(pages.length - 1, i));
+    // 正在播的全屏爆发带 transform,会挪动吸附区域让强制吸附把页面拉回去:
+    // 先掐断爆发,瞬跳期间再临时关掉吸附,落定后下一帧恢复
+    if (gfxApi.stopBurst) gfxApi.stopBurst();
+    const root = document.documentElement;
+    root.style.scrollSnapType = 'none';
+    window.scrollTo({ top: pages[idx].offsetTop, behavior: 'instant' });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { root.style.scrollSnapType = ''; });
+    });
+  }
+
+  // 切台:先点亮雪花遮罩,底下瞬间完成切换,约 200ms 后消散并由 OSD 报频道
+  function channelCut(idx) {
+    if (reduced || !overlay) {
+      cutTo(idx);
+      return;
+    }
+    if (cutNoise && !cutNoise.style.backgroundImage) {
+      const base = document.querySelector('.gfx-noise');
+      if (base) cutNoise.style.backgroundImage = base.style.backgroundImage;
+    }
+    tears.forEach((t) => {
+      t.style.top = Math.random() * 96 + '%';
+      t.style.height = 6 + Math.random() * 22 + 'px';
+    });
+    overlay.classList.add('on');
+    cutTo(idx);
+    clearTimeout(overlayTimer);
+    overlayTimer = setTimeout(() => {
+      overlay.classList.remove('on');
+      if (!osd) return;
+      osd.textContent = 'CH-' + String(idx + 1).padStart(2, '0') + ' ▪ SIGNAL LOCKED';
+      osd.classList.remove('on');
+      void osd.offsetWidth; // 连续切台时重启闪烁动画
+      osd.classList.add('on');
+      clearTimeout(osdTimer);
+      osdTimer = setTimeout(() => osd.classList.remove('on'), 1400);
+    }, 200);
+  }
+
+  let locked = false;    // 切台动画期间的短锁(也节流键盘长按)
+  let armed = true;      // 手势锁:翻过一页后吞掉本手势的全部惯性,静默后才重新武装
+  let acc = 0;
+  let lastWheelT = 0;
+
+  function jump(to) {
+    if (locked) return;
+    const idx = Math.max(0, Math.min(pages.length - 1, to));
+    if (idx === currentIndex()) return;
+    locked = true;
+    armed = false;
+    acc = 0;
+    channelCut(idx);
+    setTimeout(() => { locked = false; }, 400);
+  }
+
+  function step(dir) {
+    jump(currentIndex() + dir);
+  }
+
+  // 滚轮落在可滚动的内层容器(终端/代码块/弹窗)内就一律交还给浏览器,
+  // 即使已滚到头也不触发翻页——滚到组件边界的那一下不该被当成翻页手势;
+  // 滚动链到页面由这些容器上的 overscroll-behavior: contain 掐断
+  function insideScrollable(target) {
+    let el = target instanceof Element ? target : null;
+    while (el && el !== document.body && el !== document.documentElement) {
+      if (el.scrollHeight > el.clientHeight + 1) {
+        const oy = getComputedStyle(el).overflowY;
+        if (oy === 'auto' || oy === 'scroll') return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
+
+  fxReady.then(() => {
+    if (!FX.monitorCut) return;
+
+    window.addEventListener('wheel', (e) => {
+      if (mobile.matches) return;
+      if (e.ctrlKey) return; // 捏合缩放
+      const dir = Math.sign(e.deltaY);
+      if (!dir || insideScrollable(e.target)) return;
+      e.preventDefault();
+      if (overlayOpen()) return;
+      const gap = e.timeStamp - lastWheelT;
+      lastWheelT = e.timeStamp;
+      // 翻页后本手势的惯性事件流全部吞掉;滚轮静默 300ms 以上才算新手势
+      if (!armed) {
+        if (gap <= 300) return;
+        armed = true;
+      }
+      if (locked) return;
+      // 事件间隔较久视为新手势,重新累积
+      if (gap > 200) acc = 0;
+      // deltaMode 归一:Firefox 按行(≈16px)/按页上报时换算成像素
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1);
+      acc += dy;
+      if (Math.abs(acc) >= 40) step(Math.sign(acc));
+    }, { passive: false });
+
+    window.addEventListener('keydown', (e) => {
+      if (mobile.matches || overlayOpen()) return;
+      if (e.target.closest && e.target.closest('input, textarea, [contenteditable]')) return;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key === 'ArrowDown' || e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) {
+        e.preventDefault();
+        step(1);
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) {
+        e.preventDefault();
+        step(-1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        jump(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        jump(pages.length - 1);
+      }
+    });
+
+    // 站内锚点(导航/首页按钮)点击也走切台
+    document.addEventListener('click', (e) => {
+      if (mobile.matches) return;
+      const a = e.target.closest('a[href^="#"]');
+      if (!a) return;
+      const href = a.getAttribute('href');
+      if (href.length < 2) return;
+      const idx = pages.indexOf(document.querySelector(href));
+      if (idx < 0) return;
+      e.preventDefault();
+      jump(idx);
+    });
+
+    // 终端 about/projects/contact 等命令跳转复用切台
+    gfxApi.channelJump = (el) => {
+      const idx = pages.indexOf(el);
+      if (idx >= 0) jump(idx);
+      else el.scrollIntoView({ behavior: 'auto' });
+    };
+  });
+})();
+
+// ---------- 15. 控制台招呼(程序员的仪式感) ----------
 console.log(
   '%cY5NEKO TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
   'color:#050508;background:#00f0ff;font-size:14px;font-weight:bold;padding:2px 8px;',

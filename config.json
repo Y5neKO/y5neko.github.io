@@ -17,14 +17,15 @@
     "previewRgbSplit  项目预览图 hover RGB 通道分离",
     "statScramble     统计数字滚动乱码帧",
     "crtModal         弹窗 CRT 开机动画(关闭则回退普通弹出)",
-    "snapBurst        整页翻页落定时触发微故障"
+    "snapBurst        整页翻页落定时触发微故障",
+    "monitorCut       翻页监控切台:雪花噪点硬切换 + OSD 频道标签(关闭则回退平滑滚动)"
   ],
   "effects": {
     "scanlines": true,
     "noise": true,
     "scanbeam": true,
     "glitchBursts": true,
-    "textCorruption": false,
+    "textCorruption": true,
     "glitchTitle": true,
     "dust": true,
     "syslog": true,
@@ -36,6 +37,7 @@
     "previewRgbSplit": true,
     "statScramble": true,
     "crtModal": true,
-    "snapBurst": true
+    "snapBurst": true,
+    "monitorCut": true
   }
 }
