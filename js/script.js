@@ -90,6 +90,105 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     return FX;
   });
 
+// ---------- 0.5 内容注入:从 data.js 的 SITE 渲染项目 / 资料 / 统计 / 联系 ----------
+// 必须在依赖这些 DOM 的模块(项目切换 §4、代码折叠 §5、滚动渐入 §3)之前执行。
+// SITE 由 data.js 同步定义;缺失则跳过渲染,保留 HTML 里的占位空节点。
+(function renderContent() {
+  if (typeof SITE === 'undefined') return;
+
+  // HTML 转义:内容里无标记,统一转义防意外破坏结构
+  const h = (s) => String(s).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // -- 项目:左侧索引 + 右侧详情 --
+  const list = document.querySelector('.proj-list');
+  const detail = document.querySelector('.proj-detail');
+  if (list && detail) {
+    list.innerHTML = SITE.projects.map((proj, i) => `
+      <li class="proj-item${i === 0 ? ' is-active' : ''}" data-proj="${h(proj.key)}" role="tab" tabindex="0">
+        <span class="proj-idx">${String(i + 1).padStart(2, '0')}</span>
+        <span class="proj-name">${h(proj.name)}</span>
+        <span class="proj-lang">${h(proj.lang)}</span>
+      </li>`).join('');
+
+    detail.innerHTML = SITE.projects.map((proj, i) => {
+      const preview = proj.preview && proj.preview.img
+        ? `<div class="proj-preview"><img src="${h(proj.preview.img)}" alt="${h(proj.preview.alt || proj.name)}" loading="lazy"></div>`
+        : `<div class="proj-preview proj-preview-noimg"><span class="proj-noimg-text">${h((proj.preview && proj.preview.label) || proj.name.slice(0, 3))}</span></div>`;
+      const features = (proj.features || []).map((f) => `<li>${h(f)}</li>`).join('');
+      const tags = (proj.tags || []).map((t) => `<span>${h(t)}</span>`).join('');
+      return `
+      <article class="proj-panel${i === 0 ? ' is-active' : ''}" data-proj="${h(proj.key)}">
+        ${preview}
+        <div class="proj-info">
+          <div class="proj-head">
+            <h3>${h(proj.heading || proj.name)}</h3>
+            <span class="proj-star" data-repo="${h(proj.repo)}">★ <span class="star-num">…</span></span>
+          </div>
+          <div class="proj-body">
+            <p class="proj-desc">${h(proj.desc)}</p>
+            <ul class="proj-features">${features}</ul>
+            <div class="proj-tags">${tags}</div>
+          </div>
+          <div class="proj-actions">
+            <button class="btn btn-ghost proj-more">完整介绍</button>
+            <a class="btn btn-primary" href="https://github.com/${h(proj.repo)}" target="_blank" rel="noopener">GitHub ↗</a>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+  }
+
+  // -- 关于:统计数字 --
+  const statCard = document.querySelector('.stat-card');
+  if (statCard) {
+    statCard.innerHTML = SITE.stats.map((s) =>
+      `<div class="stat"><span class="stat-num" data-target="${Number(s.num)}">0</span><span class="stat-label">${h(s.label)}</span></div>`
+    ).join('');
+  }
+
+  // -- 关于:const Y5neKO = {...} 代码块(带语法高亮 span,复现原静态版排版)--
+  const code = document.querySelector('.about-card .code-block code');
+  if (code) {
+    const pf = SITE.profile;
+    const str = (s) => `<span class="str">'${h(s)}'</span>`;
+    const arr = (items) => '[' + items.map(str).join(', ') + ']';
+    // 漏洞编号可折叠,每行两个;#vfold / .fold-arrow / .fold-dots 由代码折叠模块接管
+    const vulnRows = [];
+    for (let i = 0; i < pf.vulns.length; i += 2) {
+      vulnRows.push('    ' + pf.vulns.slice(i, i + 2).map(str).join(', ') + ',');
+    }
+    const vulnBlock =
+      `<span class="fold folded" id="vfold"><span class="fold-arrow" role="button" tabindex="0" aria-label="展开或折叠漏洞编号"></span>` +
+      `<span class="prop">vulns</span>: [<span class="fold-dots">⋯</span><span class="fold-content">\n` +
+      vulnRows.join('\n') + `\n  </span>]</span>`;
+    code.innerHTML =
+      `<span class="kw">const</span> <span class="var">${h(pf.name)}</span> = {\n` +
+      `  <span class="prop">alias</span>: ${str(pf.alias)},\n` +
+      `  <span class="prop">role</span>: ${str(pf.role)},\n` +
+      `  <span class="prop">location</span>: ${str(pf.location)},\n` +
+      `  <span class="prop">team</span>: ${str(pf.team)},\n` +
+      `  <span class="prop">skills</span>: ${arr(pf.skills)},\n` +
+      `  <span class="prop">learning</span>: ${arr(pf.learning)},\n` +
+      `  <span class="prop">hobbies</span>: ${arr(pf.hobbies)},\n` +
+      `  ${vulnBlock},\n` +
+      `  <span class="fn">motto</span>() {\n` +
+      `    <span class="kw">return</span> ${str(pf.motto)};\n` +
+      `  }\n` +
+      `};`;
+  }
+
+  // -- 联系:简介 + 链接按钮 --
+  const contactLine = document.querySelector('.contact-line');
+  if (contactLine && SITE.contact) contactLine.textContent = SITE.contact.intro;
+  const contactLinks = document.querySelector('.contact-links');
+  if (contactLinks && SITE.contact) {
+    contactLinks.innerHTML = SITE.contact.links.map((l) =>
+      `<a class="btn btn-outline" href="${h(l.href)}" target="_blank" rel="noopener">${h(l.label)}</a>`
+    ).join('');
+  }
+})();
+
 // ---------- 1. 背景:尘埃粒子 / 系统日志流 / 雷达扫描 ----------
 (function monitorBg() {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -208,24 +307,24 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   const history = [];
   let histPos = -1;
 
-  // 虚拟文件系统(纯装饰)
+  const p = SITE.profile;
+  // 虚拟文件系统(纯装饰);about.json / motto.txt 由 data.js 的资料生成,单一来源
   const files = {
     'about.json': [
       '{',
-      '  "name": "Y5neKO",',
-      '  "role": "网络安全 / 渗透测试 / CTFer",',
-      '  "team": "Y5Sec",',
-      '  "skills": ["Java", "Python", "PHP", "C"]',
+      '  "name": ' + JSON.stringify(p.name) + ',',
+      '  "role": ' + JSON.stringify(p.role) + ',',
+      '  "team": ' + JSON.stringify(p.team) + ',',
+      '  "skills": ' + JSON.stringify(p.skills),
       '}',
     ].join('\n'),
-    'motto.txt': 'Walk between the black and white.',
+    'motto.txt': p.motto,
     'todo.md': '- [x] 重构部署脚本\n- [ ] 修复上周的 bug\n- [ ] 修复修 bug 时引入的新 bug',
     '.secret': '存在一条未注册指令:override',
   };
-  // 虚拟目录:目录名 -> 内容(与项目版块的仓库列表保持同步)
+  // 虚拟目录:目录名 -> 内容;projects/ 直接映射项目数据的名字列表
   const dirs = {
-    'projects/': ['ShiroEXP', 'ClosureVulnScanner', 'Mon3trProject', 'YCryptoTools',
-                  'QuickRedTools', 'SSReportTools', 'Suo5forNodejs', 'YSOCK'],
+    'projects/': SITE.projects.map((proj) => proj.name),
   };
 
   // 目录名归一:接受带不带尾斜杠两种写法,命中返回规范 key,否则 null
@@ -278,7 +377,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       print('<span class="out-dim">提示:↑↓ 翻历史,Tab 补全</span>');
     },
     whoami() {
-      print('Y5neKO — <span class="out-pink">网络安全 / 渗透测试 / CTFer</span>');
+      print(esc(p.name) + ' — <span class="out-pink">' + esc(p.role) + '</span>');
     },
     neofetch() {
       print('<span class="out-cyan">   ██  ██</span>       <span class="out-pink">Y5neKO</span>@<span class="out-pink">dev</span>');

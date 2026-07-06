@@ -99,34 +99,9 @@
     <section class="section" id="about">
       <h2 class="section-title"><span class="tag">&lt;about&gt;</span> 关于我 <span class="tag">&lt;/about&gt;</span></h2>
       <div class="about-grid">
-        <div class="card about-card reveal">
-          <pre class="code-block"><code><span class="kw">const</span> <span class="var">Y5neKO</span> = {
-  <span class="prop">alias</span>: <span class="str">'Y5ねこ / Y5n3K0'</span>,
-  <span class="prop">role</span>: <span class="str">'网络安全 / 渗透测试 / CTFer'</span>,
-  <span class="prop">location</span>: <span class="str">'Chengdu, China'</span>,
-  <span class="prop">team</span>: <span class="str">'Y5Sec'</span>,
-  <span class="prop">skills</span>: [<span class="str">'Java'</span>, <span class="str">'Python'</span>, <span class="str">'PHP'</span>, <span class="str">'C'</span>],
-  <span class="prop">learning</span>: [<span class="str">'Reverse'</span>, <span class="str">'PWN'</span>, <span class="str">'CodeAudit'</span>],
-  <span class="prop">hobbies</span>: [<span class="str">'Anime'</span>, <span class="str">'Novel'</span>, <span class="str">'Music'</span>],
-  <span class="fold folded" id="vfold"><span class="fold-arrow" role="button" tabindex="0" aria-label="展开或折叠漏洞编号"></span><span class="prop">vulns</span>: [<span class="fold-dots">⋯</span><span class="fold-content">
-    <span class="str">'CVE-2024-39071'</span>,  <span class="str">'CVE-2024-39072'</span>,
-    <span class="str">'CNVD-2024-29955'</span>, <span class="str">'CNVD-2024-39609'</span>,
-    <span class="str">'CNVD-2024-39888'</span>, <span class="str">'CNVD-2024-42668'</span>,
-    <span class="str">'CNVD-2024-43066'</span>, <span class="str">'CNVD-2024-44216'</span>,
-    <span class="str">'CNVD-2024-45972'</span>, <span class="str">'CNVD-2026-23984'</span>,
-    <span class="str">'CNVD-2026-25278'</span>,
-  </span>]</span>,
-  <span class="fn">motto</span>() {
-    <span class="kw">return</span> <span class="str">'Walk between the black and white.'</span>;
-  }
-};</code></pre>
-        </div>
-        <div class="card stat-card reveal">
-          <div class="stat"><span class="stat-num" data-target="72">0</span><span class="stat-label">开源仓库</span></div>
-          <div class="stat"><span class="stat-num" data-target="127">0</span><span class="stat-label">GitHub 关注者</span></div>
-          <div class="stat"><span class="stat-num" data-target="11">0</span><span class="stat-label">CVE / CNVD 编号</span></div>
-          <div class="stat"><span class="stat-num" data-target="8">0</span><span class="stat-label">混迹安全圈(年)</span></div>
-        </div>
+        <!-- 代码块与统计由 js/data.js + script.js 渲染 -->
+        <div class="card about-card reveal"><pre class="code-block"><code></code></pre></div>
+        <div class="card stat-card reveal"></div>
       </div>
     </section>
 
@@ -134,281 +109,9 @@
     <section class="section" id="projects">
       <h2 class="section-title"><span class="tag">&lt;projects&gt;</span> 项目 <span class="tag">&lt;/projects&gt;</span></h2>
       <div class="proj reveal">
-        <!-- 左侧:项目索引 -->
-        <ul class="proj-list" role="tablist">
-          <li class="proj-item is-active" data-proj="shiroexp" role="tab" tabindex="0">
-            <span class="proj-idx">01</span>
-            <span class="proj-name">ShiroEXP</span>
-            <span class="proj-lang">Java</span>
-          </li>
-          <li class="proj-item" data-proj="closure" role="tab" tabindex="0">
-            <span class="proj-idx">02</span>
-            <span class="proj-name">ClosureVulnScanner</span>
-            <span class="proj-lang">Python</span>
-          </li>
-          <li class="proj-item" data-proj="mon3tr" role="tab" tabindex="0">
-            <span class="proj-idx">03</span>
-            <span class="proj-name">Mon3trProject</span>
-            <span class="proj-lang">Python</span>
-          </li>
-          <li class="proj-item" data-proj="ycrypto" role="tab" tabindex="0">
-            <span class="proj-idx">04</span>
-            <span class="proj-name">YCryptoTools</span>
-            <span class="proj-lang">Java</span>
-          </li>
-          <li class="proj-item" data-proj="quickred" role="tab" tabindex="0">
-            <span class="proj-idx">05</span>
-            <span class="proj-name">QuickRedTools</span>
-            <span class="proj-lang">Java</span>
-          </li>
-          <li class="proj-item" data-proj="ssreport" role="tab" tabindex="0">
-            <span class="proj-idx">06</span>
-            <span class="proj-name">SSReportTools</span>
-            <span class="proj-lang">Java</span>
-          </li>
-          <li class="proj-item" data-proj="suo5node" role="tab" tabindex="0">
-            <span class="proj-idx">07</span>
-            <span class="proj-name">Suo5forNodejs</span>
-            <span class="proj-lang">JavaScript</span>
-          </li>
-          <li class="proj-item" data-proj="ysock" role="tab" tabindex="0">
-            <span class="proj-idx">08</span>
-            <span class="proj-name">YSOCK</span>
-            <span class="proj-lang">Go</span>
-          </li>
-        </ul>
-
-        <!-- 右侧:项目详情 -->
-        <div class="proj-detail card">
-          <!-- ShiroEXP -->
-          <article class="proj-panel is-active" data-proj="shiroexp">
-            <div class="proj-preview">
-              <img src="images/shiroexp.png" alt="ShiroEXP 界面预览" loading="lazy">
-            </div>
-            <div class="proj-info">
-              <div class="proj-head">
-                <h3>ShiroEXP</h3>
-                <span class="proj-star" data-repo="Y5neKO/ShiroEXP">★ <span class="star-num">…</span></span>
-              </div>
-              <div class="proj-body">
-                <p class="proj-desc">Shiro漏洞综合利用工具</p>
-                <ul class="proj-features">
-                  <li>爆破rememberMe</li>
-                  <li>漏洞探测(Shiro550、Shiro721)</li>
-                  <li>探测回显链</li>
-                  <li>探测依赖（FindClassByURLDNS、FindClassByBomb）</li>
-                  <li>命令执行</li>
-                  <li>注入内存马</li>
-                  <li>全局代理</li>
-                </ul>
-                <div class="proj-tags">
-                  <span>Java</span><span>JDK 8u431</span>
-                </div>
-              </div>
-              <div class="proj-actions">
-                <button class="btn btn-ghost proj-more">完整介绍</button>
-                <a class="btn btn-primary" href="https://github.com/Y5neKO/ShiroEXP" target="_blank" rel="noopener">GitHub ↗</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- ClosureVulnScanner -->
-          <article class="proj-panel" data-proj="closure">
-            <div class="proj-preview">
-              <img src="images/closure.png" alt="ClosureVulnScanner 图标" loading="lazy">
-            </div>
-            <div class="proj-info">
-              <div class="proj-head">
-                <h3>CVS - ClosureVulnScanner</h3>
-                <span class="proj-star" data-repo="Y5neKO/ClosureVulnScanner">★ <span class="star-num">…</span></span>
-              </div>
-              <div class="proj-body">
-                <p class="proj-desc">基于Python的Web综合漏洞扫描器,名字取自 Arknights® Closure</p>
-                <ul class="proj-features">
-                  <li>v0.1:实现了基础功能，包括指纹、exp、poc、多线程以及代理等功能</li>
-                  <li>v0.2:重构了代码结构，优化多线程算法，修复了部分bug</li>
-                </ul>
-                <div class="proj-tags">
-                  <span>Python 3.8.0</span><span>Arknights</span>
-                </div>
-              </div>
-              <div class="proj-actions">
-                <button class="btn btn-ghost proj-more">完整介绍</button>
-                <a class="btn btn-primary" href="https://github.com/Y5neKO/ClosureVulnScanner" target="_blank" rel="noopener">GitHub ↗</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- Mon3trProject -->
-          <article class="proj-panel" data-proj="mon3tr">
-            <div class="proj-preview">
-              <img src="images/mon3tr.png" alt="Mon3trProject 界面预览" loading="lazy">
-            </div>
-            <div class="proj-info">
-              <div class="proj-head">
-                <h3>Mon3trProject</h3>
-                <span class="proj-star" data-repo="Y5neKO/Mon3trProject">★ <span class="star-num">…</span></span>
-              </div>
-              <div class="proj-body">
-                <p class="proj-desc">Mon3tr流量加密客户端,名字取自 Arknights® Mon3tr</p>
-                <ul class="proj-features">
-                  <li>Webshell Management Client,目前仅用作个人用途，因此开发方向主观性较强，且代码比较随意(菜)，欢迎大佬们提Issue或者pull完善算法</li>
-                  <li>v0.2:当前仅支持php，新增二级混淆模板，进一步提升了混淆效果，目前能过几乎所有静态查杀；新增shell模式，优化命令执行效率</li>
-                </ul>
-                <div class="proj-tags">
-                  <span>Python 3.8.10</span><span>PHP</span><span>Arknights</span>
-                </div>
-              </div>
-              <div class="proj-actions">
-                <button class="btn btn-ghost proj-more">完整介绍</button>
-                <a class="btn btn-primary" href="https://github.com/Y5neKO/Mon3trProject" target="_blank" rel="noopener">GitHub ↗</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- YCryptoTools -->
-          <article class="proj-panel" data-proj="ycrypto">
-            <div class="proj-preview proj-preview-noimg">
-              <span class="proj-noimg-text">YCT</span>
-            </div>
-            <div class="proj-info">
-              <div class="proj-head">
-                <h3>YCryptoTools</h3>
-                <span class="proj-star" data-repo="Y5neKO/YCryptoTools">★ <span class="star-num">…</span></span>
-              </div>
-              <div class="proj-body">
-                <p class="proj-desc">前端加解密 BurpSuite 插件,加解密请求响应数据,方便渗透测试中分析 HTTP 流量</p>
-                <ul class="proj-features">
-                  <li>预置请求参数匹配规则(GET参数、POST参数、GET和POST参数)</li>
-                  <li>预置请求参数格式匹配(x-www、JSON)</li>
-                  <li>内置算法:URL、AES、DES、RSA、BASE64、MD5、SHA-1、SM2、SM3、SM4</li>
-                </ul>
-                <div class="proj-tags">
-                  <span>Java</span><span>BurpSuite Plugin</span><span>JDK 8u421</span>
-                </div>
-              </div>
-              <div class="proj-actions">
-                <button class="btn btn-ghost proj-more">完整介绍</button>
-                <a class="btn btn-primary" href="https://github.com/Y5neKO/YCryptoTools" target="_blank" rel="noopener">GitHub ↗</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- QuickRedTools -->
-          <article class="proj-panel" data-proj="quickred">
-            <div class="proj-preview proj-preview-noimg">
-              <span class="proj-noimg-text">QRT</span>
-            </div>
-            <div class="proj-info">
-              <div class="proj-head">
-                <h3>QuickRedTools</h3>
-                <span class="proj-star" data-repo="Y5neKO/QuickRedTools">★ <span class="star-num">…</span></span>
-              </div>
-              <div class="proj-body">
-                <p class="proj-desc">基于 JavaFX 开发的渗透测试快速启动工具</p>
-                <ul class="proj-features">
-                  <li>环境管理:支持配置 Java、Python、Go、Gem、Node.js 等多种开发环境</li>
-                  <li>工具分类管理,便于归类各类渗透工具</li>
-                  <li>一键启动,支持自定义启动参数与工作目录</li>
-                  <li>配置数据 JSON 持久化,重启不丢失</li>
-                </ul>
-                <div class="proj-tags">
-                  <span>Java</span><span>JavaFX</span>
-                </div>
-              </div>
-              <div class="proj-actions">
-                <button class="btn btn-ghost proj-more">完整介绍</button>
-                <a class="btn btn-primary" href="https://github.com/Y5neKO/QuickRedTools" target="_blank" rel="noopener">GitHub ↗</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- SSReportTools -->
-          <article class="proj-panel" data-proj="ssreport">
-            <div class="proj-preview proj-preview-noimg">
-              <span class="proj-noimg-text">SST</span>
-            </div>
-            <div class="proj-info">
-              <div class="proj-head">
-                <h3>SSReportTools</h3>
-                <span class="proj-star" data-repo="Y5neKO/SSReportTools">★ <span class="star-num">…</span></span>
-              </div>
-              <div class="proj-body">
-                <p class="proj-desc">基于 JavaFX 开发的图形化安服/渗透测试报告自动生成工具,安服渗透仔摸鱼划水必备</p>
-                <ul class="proj-features">
-                  <li>占位符 + OpenXML 解析替换,自动生成安服/渗透测试报告</li>
-                  <li>漏洞库编辑与自定义报告模板制作</li>
-                  <li>AI 辅助生成漏洞描述</li>
-                  <li>TODO:批量生成报告</li>
-                </ul>
-                <div class="proj-tags">
-                  <span>Java</span><span>JavaFX</span><span>JDK 8</span>
-                </div>
-              </div>
-              <div class="proj-actions">
-                <button class="btn btn-ghost proj-more">完整介绍</button>
-                <a class="btn btn-primary" href="https://github.com/Y5neKO/SSReportTools" target="_blank" rel="noopener">GitHub ↗</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- Suo5forNodejs -->
-          <article class="proj-panel" data-proj="suo5node">
-            <div class="proj-preview proj-preview-noimg">
-              <span class="proj-noimg-text">S5N</span>
-            </div>
-            <div class="proj-info">
-              <div class="proj-head">
-                <h3>Suo5forNodejs</h3>
-                <span class="proj-star" data-repo="Y5neKO/Suo5forNodejs">★ <span class="star-num">…</span></span>
-              </div>
-              <div class="proj-body">
-                <p class="proj-desc">适用于 Node.js 环境下的 Suo5 内存马</p>
-                <ul class="proj-features">
-                  <li>Next.js 自动检测,支持全双工/半双工/短连接三种模式</li>
-                  <li>适配 CVE-2025-55182 / CVE-2025-66478(React Server Components RCE / Next.js RCE)</li>
-                  <li>兼容 Suo5 客户端 v2.0.0</li>
-                </ul>
-                <div class="proj-tags">
-                  <span>JavaScript</span><span>Node.js</span><span>Suo5</span>
-                </div>
-              </div>
-              <div class="proj-actions">
-                <button class="btn btn-ghost proj-more">完整介绍</button>
-                <a class="btn btn-primary" href="https://github.com/Y5neKO/Suo5forNodejs" target="_blank" rel="noopener">GitHub ↗</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- YSOCK -->
-          <article class="proj-panel" data-proj="ysock">
-            <div class="proj-preview proj-preview-noimg">
-              <span class="proj-noimg-text">YSK</span>
-            </div>
-            <div class="proj-info">
-              <div class="proj-head">
-                <h3>YSOCK</h3>
-                <span class="proj-star" data-repo="Y5neKO/YSOCK">★ <span class="star-num">…</span></span>
-              </div>
-              <div class="proj-body">
-                <p class="proj-desc">基于 Web 的 SOCKS5 隧道代理工具,通过 PHP/JSP/JSPX/ASPX/ASP 脚本在目标服务器建立加密隧道</p>
-                <ul class="proj-features">
-                  <li>多 Payload 支持:PHP / JSP / JSPX / ASPX / ASP</li>
-                  <li>三种传输模式自动切换:Full Duplex / Half Duplex / Classic</li>
-                  <li>加密通信:SHA256-CTR + HMAC-SHA256</li>
-                  <li>多路复用:单 HTTP 连接承载多个 SOCKS5 会话</li>
-                </ul>
-                <div class="proj-tags">
-                  <span>Go</span><span>SOCKS5</span><span>Web Shell</span>
-                </div>
-              </div>
-              <div class="proj-actions">
-                <button class="btn btn-ghost proj-more">完整介绍</button>
-                <a class="btn btn-primary" href="https://github.com/Y5neKO/YSOCK" target="_blank" rel="noopener">GitHub ↗</a>
-              </div>
-            </div>
-          </article>
-        </div>
+        <!-- 左侧索引与右侧详情均由 js/data.js + script.js 渲染 -->
+        <ul class="proj-list" role="tablist"></ul>
+        <div class="proj-detail card"></div>
       </div>
     </section>
 
@@ -416,12 +119,9 @@
     <section class="section" id="contact">
       <h2 class="section-title"><span class="tag">&lt;contact&gt;</span> 联系 <span class="tag">&lt;/contact&gt;</span></h2>
       <div class="contact-box card reveal">
-        <p class="contact-line">合作意向或技术交流,可通过以下渠道联系。</p>
-        <div class="contact-links">
-          <a class="btn btn-outline" href="https://github.com/Y5neKO" target="_blank" rel="noopener">GitHub</a>
-          <a class="btn btn-outline" href="https://y5neko.github.io/blog/" target="_blank" rel="noopener">Blog</a>
-          <a class="btn btn-outline" href="https://space.bilibili.com/35199034" target="_blank" rel="noopener">Bilibili</a>
-        </div>
+        <!-- 简介与链接由 js/data.js + script.js 渲染 -->
+        <p class="contact-line"></p>
+        <div class="contact-links"></div>
       </div>
 
       <footer class="footer">
@@ -467,6 +167,7 @@
     <button class="ctx-item" data-act="reload">重置信号<span class="ctx-hint">RST</span></button>
   </div>
 
+  <script src="js/data.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>
