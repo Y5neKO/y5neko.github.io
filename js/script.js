@@ -24,6 +24,7 @@ const FX = {
   crtModal: true,         // 弹窗 CRT 开机动画
   snapBurst: true,        // 翻页切换时触发微故障
   monitorCut: true,       // 翻页监控切台:雪花硬切+OSD(关闭回退平滑滚动)
+  customCursor: true,     // 十字准星光标,可点击元素变品红锁定框(纯 CSS)
 };
 
 // 特效间共享:乱码字符集 / 正在乱码中的文本节点(防互相踩)

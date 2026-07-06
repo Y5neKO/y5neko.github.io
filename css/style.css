@@ -66,6 +66,18 @@ body::after {
   font-family: var(--mono);
 }
 
+/* ---------- 自定义光标:青色十字准星,可点击处变品红锁定框 ---------- */
+/* 准星带一丝品红色散伪影,与标题双通道错位同源;关闭开关回退系统光标。
+   .nav-logo 显式声明过 cursor,单独拉回准星,保持全页一致 */
+html:not(.fx-off-custom-cursor) body,
+html:not(.fx-off-custom-cursor) .nav-logo {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M13 3v6M13 15v6M3 13h6M15 13h6' fill='none' stroke='%23ff2d95' stroke-width='1.5' opacity='.55'/%3E%3Cpath d='M12 2v6M12 16v6M2 12h6M16 12h6' fill='none' stroke='%2300f0ff' stroke-width='1.5'/%3E%3Crect x='11.25' y='11.25' width='1.5' height='1.5' fill='%2300f0ff'/%3E%3C/svg%3E") 12 12, crosshair;
+}
+
+html:not(.fx-off-custom-cursor) :is(a, button, .btn, .fold-arrow, .fold-dots, .proj-item) {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5' fill='none' stroke='%23ff2d95' stroke-width='1.5'/%3E%3Cpath d='M12 8.5v7M8.5 12h7' fill='none' stroke='%2300f0ff' stroke-width='1.5'/%3E%3C/svg%3E") 12 12, pointer;
+}
+
 /* 霓虹雾:青/电蓝/品红极淡光晕,缓慢漂移 */
 body::before {
   content: '';
