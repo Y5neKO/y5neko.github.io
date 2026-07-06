@@ -25,6 +25,7 @@ const FX = {
   snapBurst: true,        // 翻页切换时触发微故障
   monitorCut: true,       // 翻页监控切台:雪花硬切+OSD(关闭回退平滑滚动)
   customCursor: true,     // 十字准星光标,可点击元素变品红锁定框(纯 CSS)
+  contextMenu: true,      // 自定义右键菜单:导航/复制/外链控制面板
 };
 
 // 特效间共享:乱码字符集 / 正在乱码中的文本节点(防互相踩)
@@ -221,7 +222,18 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     'todo.md': '- [x] 重构部署脚本\n- [ ] 修复上周的 bug\n- [ ] 修复修 bug 时引入的新 bug',
     '.secret': '存在一条未注册指令:override',
   };
-  const dirs = ['projects/', 'archive/'];
+  // 虚拟目录:目录名 -> 内容(与项目版块的仓库列表保持同步)
+  const dirs = {
+    'projects/': ['ShiroEXP', 'ClosureVulnScanner', 'Mon3trProject', 'YCryptoTools',
+                  'QuickRedTools', 'SSReportTools', 'Suo5forNodejs', 'YSOCK'],
+  };
+
+  // 目录名归一:接受带不带尾斜杠两种写法,命中返回规范 key,否则 null
+  function dirLookup(name) {
+    if (!name) return null;
+    const key = name.endsWith('/') ? name : name + '/';
+    return Object.prototype.hasOwnProperty.call(dirs, key) ? key : null;
+  }
 
   function esc(s) {
     const div = document.createElement('div');
@@ -278,19 +290,53 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       print('                <span class="out-purple">Memory:</span> 12.4GiB / 64GiB');
     },
     ls(args) {
-      const showAll = args.includes('-a');
-      const names = [...dirs.map((d) => '<span class="out-cyan">' + d + '</span>'),
-                     ...Object.keys(files)
-                       .filter((f) => showAll || !f.startsWith('.'))
-                       .map(esc)];
-      print(names.join('   '));
+      // 参数解析:- 开头是选项(只认 a,支持 -aa 这种合并写法),其余当路径
+      let showAll = false;
+      const operands = [];
+      for (const a of args) {
+        if (a.startsWith('--')) {
+          print("ls: unrecognized option '" + esc(a) + "'", 'out-err');
+          return;
+        }
+        if (a.startsWith('-') && a.length > 1) {
+          const bad = [...a.slice(1)].find((ch) => ch !== 'a');
+          if (bad !== undefined) {
+            print("ls: invalid option -- '" + esc(bad) + "'", 'out-err');
+            return;
+          }
+          showAll = true;
+        } else {
+          operands.push(a);
+        }
+      }
+
+      if (!operands.length) {
+        const names = [...Object.keys(dirs).map((d) => '<span class="out-cyan">' + esc(d) + '</span>'),
+                       ...Object.keys(files)
+                         .filter((f) => showAll || !f.startsWith('.'))
+                         .map(esc)];
+        print(names.join('   '));
+        return;
+      }
+
+      operands.forEach((name) => {
+        const dir = dirLookup(name);
+        if (dir) {
+          if (operands.length > 1) print(esc(dir) + ':', 'out-dim');
+          print(dirs[dir].map(esc).join('   '));
+        } else if (files[name] !== undefined) {
+          print(esc(name)); // 对文件操作数,真实 ls 就是回显文件名
+        } else {
+          print("ls: cannot access '" + esc(name) + "': No such file or directory", 'out-err');
+        }
+      });
     },
     cat(args) {
       const name = args[0];
       if (!name) { print('cat: 缺少文件名,用法 cat <file>', 'out-err'); return; }
       if (files[name] !== undefined) {
         files[name].split('\n').forEach((l) => print('<span class="out-green">' + esc(l) + '</span>'));
-      } else if (dirs.includes(name) || dirs.includes(name + '/')) {
+      } else if (dirLookup(name)) {
         print('cat: ' + esc(name) + ': Is a directory', 'out-err');
       } else {
         print('cat: ' + esc(name) + ': No such file or directory', 'out-err');
@@ -375,7 +421,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       // 首个词补全命令名,后续词补全文件名
       const pool = parts.length === 1
         ? Object.keys(commands)
-        : [...Object.keys(files), ...dirs];
+        : [...Object.keys(files), ...Object.keys(dirs)];
       const hits = pool.filter((c) => c.startsWith(last));
       if (hits.length === 1) {
         parts[parts.length - 1] = hits[0];
@@ -391,8 +437,13 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     }
   });
 
-  // 点终端任意处聚焦输入框
-  body.addEventListener('click', () => input.focus());
+  // 点终端任意处聚焦输入框;拖选文字松开也会触发 click,
+  // 此时聚焦会清掉选区导致终端文字永远选不住,有选区就不抢焦点
+  body.addEventListener('click', () => {
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed) return;
+    input.focus();
+  });
 
   // 开机欢迎语
   print('<span class="out-cyan">Y5neKO-terminal v3.0.0</span> <span class="out-dim">(kernel 6.9.0-glitch)</span>');
@@ -730,8 +781,21 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     }, 90);
   }
 
+  // 改写 nodeValue 会把浏览器的选区打断,导致文字选不上/选中就丢:
+  // 鼠标按住期间(可能正在拖选)整轮暂停;已被选区覆盖的节点也跳过
+  let mouseHeld = false;
+  document.addEventListener('mousedown', (e) => { if (e.button === 0) mouseHeld = true; });
+  document.addEventListener('mouseup', (e) => { if (e.button === 0) mouseHeld = false; });
+
+  function inSelection(node) {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return false;
+    return sel.containsNode(node, true);
+  }
+
   function burst() {
-    const nodes = collectNodes().filter((n) => !busy.has(n));
+    if (mouseHeld) { schedule(); return; }
+    const nodes = collectNodes().filter((n) => !busy.has(n) && !inSelection(n));
     // 每轮随机腐蚀 2~4 个节点
     const count = 2 + Math.floor(Math.random() * 3);
     for (let i = 0; i < count && nodes.length; i++) {
@@ -860,7 +924,78 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   });
 })();
 
-// ---------- 14. 整页硬切换:模拟监控信号切台,滚轮/键盘翻页无过渡 ----------
+// ---------- 14. 自定义右键菜单:监控站控制面板 ----------
+// 输入区保留原生菜单(粘贴等);移动端不接管;开关关闭回退原生
+(function contextMenu() {
+  const menu = document.getElementById('ctx-menu');
+  if (!menu) return;
+  const copyItem = menu.querySelector('[data-act="copy"]');
+  const mobile = window.matchMedia('(max-width: 760px)');
+
+  function hide() { menu.classList.add('hidden'); }
+
+  function show(x, y) {
+    menu.classList.remove('hidden');
+    // 先显示再测量,贴近视口右/下边缘时往回收
+    menu.style.left = Math.max(8, Math.min(x, window.innerWidth - menu.offsetWidth - 8)) + 'px';
+    menu.style.top = Math.max(8, Math.min(y, window.innerHeight - menu.offsetHeight - 8)) + 'px';
+    // 重挂 .opening 让连续右键也能重启入场动画
+    menu.classList.remove('opening');
+    void menu.offsetWidth;
+    menu.classList.add('opening');
+  }
+
+  function copySelection() {
+    const text = String(window.getSelection() || '');
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => document.execCommand('copy'));
+    } else {
+      document.execCommand('copy'); // http/file 环境兜底
+    }
+  }
+
+  document.addEventListener('contextmenu', (e) => {
+    if (!FX.contextMenu || mobile.matches) return;
+    if (e.target.closest('input, textarea, [contenteditable]')) return;
+    e.preventDefault();
+    // 无选中文字时置灰复制项
+    const sel = window.getSelection();
+    copyItem.classList.toggle('is-disabled', !sel || sel.isCollapsed);
+    show(e.clientX, e.clientY);
+  });
+
+  // 按下菜单项的瞬间浏览器会先清空页面选区,复制就拿不到内容了,拦掉默认行为
+  menu.addEventListener('mousedown', (e) => e.preventDefault());
+
+  menu.addEventListener('click', (e) => {
+    const item = e.target.closest('.ctx-item');
+    if (!item) return;
+    const act = item.dataset.act;
+    if (act === 'copy') {
+      copySelection();
+    } else if (act === 'nav') {
+      const el = document.getElementById(item.dataset.target);
+      if (el) {
+        if (gfxApi.channelJump) gfxApi.channelJump(el);
+        else el.scrollIntoView({ behavior: 'auto' });
+      }
+    } else if (act === 'link') {
+      window.open(item.dataset.href, '_blank', 'noopener');
+    } else if (act === 'reload') {
+      location.reload();
+    }
+    hide();
+  });
+
+  // 点菜单外、滚动翻页、按 Esc、窗口失焦都收起
+  document.addEventListener('click', (e) => { if (!menu.contains(e.target)) hide(); });
+  window.addEventListener('wheel', hide, { passive: true });
+  window.addEventListener('blur', hide);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+})();
+
+// ---------- 15. 整页硬切换:模拟监控信号切台,滚轮/键盘翻页无过渡 ----------
 (function monitorCut() {
   const pages = Array.from(document.querySelectorAll('.hero, .section'));
   if (pages.length < 2) return;
@@ -1042,7 +1177,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   });
 })();
 
-// ---------- 15. 控制台招呼(程序员的仪式感) ----------
+// ---------- 16. 控制台招呼(程序员的仪式感) ----------
 console.log(
   '%cY5NEKO TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
   'color:#050508;background:#00f0ff;font-size:14px;font-weight:bold;padding:2px 8px;',

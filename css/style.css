@@ -83,6 +83,13 @@ html:not(.fx-off-custom-cursor) :is(a, button, .btn, .fold-arrow, .fold-dots, .p
   cursor: image-set(url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACtUlEQVR42r2WzWsUWRTFf+fV6yExEuO3s1OQWYwTtyIKEXTtxph/QmdEl27aXs8qOn7sAuIqgrpyJWJciSAiiCtRRFREnI66kJiuOrOo6urqdKWNi/FCwePVu+fee+rcd0sUZuYTprYK7tFnC61UYFYxTzVj/84h2PbBuj6T8jNMbjaDWq3Mk5eOEkamSb82kAQWADE7rcd/vjWWkPNq87X3Xh3Dny9AHIOOsUwY7ZB9vaunJ+ZMM0RaZbFnCXEfqd8BARcBlrQuf39OrKRKHxtkjYOIDRgQGSHbQcZhYE60sgp/Dix/eaCnJ/fXlkor663zSvTk9CLwW14VEtiTF68hjnTPhgqEkJIuBT9M9vH5LlaCUU0AC7JgEMwEg/J1VTJOsOOAkkC8uFP4ZoGKX1z5zQU2v7tWmlJaTx/2+l8LX/X5xZLbyLEuZpXvIvOAlNH2NLCLjfq7V3UBuNDKg0efYYl1a+fWDtgj2JG2b9P2N+yIHZl3snYcmsE0w9BD/3qORb8ejmNVcTQk8wQppe1pJphhkQ7iAGY7cIMJAp9YYEKXy7M1Fod1eaGzncAUooPZDDQQU4Xv++8m2l/aKvrvdnXb12j7zXAc+nBCtTu1QmIVS4pDG4At/b0zKNkqTkmRd8+OA+j5qc/1iQFwG3hZVlVTr/deHUMfG8U1Qk85o8ktRuPNrqJqG2xCl9mov4o9U8m0nAv+dJ70l4c1VwWbimd1m3eCv6N9hXHkLXUqWq5kH0xzsKtnBqVYVvuhYMNOcY61MoDBnQIwW/PE6ibwjG85yD9LOX2DAQJhZL//uPgA0aMhelqPT74yzdAFKyfa7tlxRuJNQhjHKaAMxUmy5S890OPPCi34CoT7vaaxWMtckFX6GFDyCDFbK5b/Zej3f6xz5E/9qFztkhzc3SOR/7b8BypvJhG7HeyZAAAAAElFTkSuQmCC") 1x, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAFS0lEQVR42u2ZPWxbVRTHf+e+69humi+qUokFygYRRS1LO6CkVRcmBpTCyoREqtKNgcHyABsLUrqAhFiQiDemolLcCCGmQNWQVkhELRJioG3SNE7txO/dw/BeHH88J7Zf0qRSjmT56t377jvf9/zPhQPaW5K4h0rOMDEqHe1QuOAEtFcGdGLa6+w7BYRCsP2GqOxXbSs5s6UFFBVBVE98cRwOHydYdVizhUBpcOs3Ze7DpY13u2JorGhZvHMG41nw4xf5gJcStLwscx/NNk/b2ma5nCGP6ujUK2B/xsgRSG/hHApeClzlPHCdiYKhQNCZJiNh7/82iMn8gNgsro1HWwADchg9MfWe3Jr8TiemPSlcCKKZiG6MG0EUw7t4h47gl9bAgRgQif6bfhjwTDKXE/VCBtv8FAgq6yDgdDKMh3ltsUCjinxFPIsL7oJ/DxFBtckW4lAM4h4A8Op894Ec+FVM+ipBZQANtMEEEhoZYRgxr4NTkGpbF2qSQPCyHkH5K5mb/KwjRebzrvPUF8aK/PnxCvD2lu526sppfPtrja/OBIh8HNJKzvDqqOX2fJsoy2uiNBqTWQB44wWP2X8Dqq6fLZzUbrO9CnmnR4tO6FzD3R1E8fvqy9Misx84NVNuK/WYZ/0kPhBgr8nG5GWF8FiJxgnO/rqsIdLjXmaTH8RtL4CSxqRDywRP0skiVDR5lKtF0gYx4Ff62wswMx5EQn5JUL0Wje81zHWnfcsyAwAMUUWk1NX7hYlQ2wGzmMo51AMXPNpI3btYMmpYHj/WN6noIlVd5KF+H82ZXY+BBixQmNee87+QwjKCBxiGej/oECamTWJ+urbAip6lrI51dSzq9admgURMh+ShCiUMgkRlgInWmIbMBC5poO+MACL1QR6Ol7VUqyqFarQm2H8WULUscYYslgogeHgEOE7iIkSlHGVFz+JjsDh84DCwyk2GZQlV6dUSkoDx8KOP9DmUfxggS7VuRwes1533fQ2OA1mgxHkG5DqqXpMVn7ILgYcXMSZt1OTFqk323oWqVLFcZYUBXIShHGAYxnASAQKWWOEmJhLS4BAMwoN68LG/aFVPU1GlqsqiXnt6xVxv8WAa3AkCSvTXuY2N1pjNwizS/D5Jo64puB0r2syoQ7Vx7e6UEtRBXCEB3lWUDTiYiOnNbmErPzYmYegOJIdw70wNMPUnw83t3azVAi9+nWGwnA0rymxZ/n6/0uX3Nstgn3MRB496zTY6lrMsHgvL8sBV5fbFUiyk1LFiKMzQ6mW8zAJeZoGh1csNc92AmGFZIiVFUlJkRH7vFuDUutaLx84gdgHTt4Dh2+ZWTAwik0OIN1IbJ4OTpiGIey3LxRsJW5ky1AEmlgD1NaZI6wVOJi/eRDXkx0BMC9vGa06kBZTvKYlEzVI56Avt/75Qc1NmrGjhntWxYvyKmfGg25uZljTJeOvEStnTsaKwfMfbKvnabaBCSWbO+rS9/9kB757J+5CPm/IB9NSVJZx025kTcOsOeEtfmzoUU4SF6yQtaPkbuXXpruZyptM7gtpd3OnPs6xmL4FkkSB83BC4qqy7lxBfkZR03plDFLe+hkmNY/rGN65KWqomkwFX+QW4y+3R7jPW48EsZu1TUgMe6sfjGw0gWKugqRRotn0QP38/8jTzEzghNZjF9O0UcErgYx7Y/gy23wOuAtTfYdcsIIULoQ3n5EcdnXoHmzlB8MQhxrQ/YJyg+hfQ2x3Z4OMyq9lP8J/EuFDtXFJMH/iVh/wxOQUX2bih3KZ0fTZI2hZS/x3tTJDdSqMtdCPKWAe0v+h/G749vSWhS0wAAAAASUVORK5CYII=") 2x) 12 12, pointer;
 }
 
+/* 文本输入区:同风格青色工字梁光标(覆盖 .terminal-body 的系统 text 光标) */
+html:not(.fx-off-custom-cursor) :is(.terminal-body, input, textarea) {
+  cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABKUlEQVR42u2VvUpDQRCFv9kbk4AEwcI0gkIkhQ9h6VuIpPUhIvga6fMcksY3sFQs7AJe86Mx2eyxuCakMHFNrthkYGFn2OWbOcUcIyYk923dLPDfYVHdpxxhJBgOsMoHoS/EAU+YTdZDSxk81T4vmiKJgUTv6y6Jrk5XSgi45bOZANhjgOOSIQ0Cd5U3r0b7vkWPBo7nWTv5aDlS6/BhJJWuryzyn4t69ajymVRAlIMzpvXqbpbL8gEc4ztmfiZFMvahY+bnMm4M2CC2gC1gC4gHuGa2MbPVUEisuWKD/h5gNr4xCwhvArr9LM8FIDlSnRTfVQMqkwR/e16vFlPVkHbWF2/RcNIFk1k8EYZTiDKcVy4YUmKC5jMHLFfD+TvTzyRYNun0J0/4BFzTlXhu7pipAAAAAElFTkSuQmCC") 12 12, text;
+  cursor: -webkit-image-set(url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABKUlEQVR42u2VvUpDQRCFv9kbk4AEwcI0gkIkhQ9h6VuIpPUhIvga6fMcksY3sFQs7AJe86Mx2eyxuCakMHFNrthkYGFn2OWbOcUcIyYk923dLPDfYVHdpxxhJBgOsMoHoS/EAU+YTdZDSxk81T4vmiKJgUTv6y6Jrk5XSgi45bOZANhjgOOSIQ0Cd5U3r0b7vkWPBo7nWTv5aDlS6/BhJJWuryzyn4t69ajymVRAlIMzpvXqbpbL8gEc4ztmfiZFMvahY+bnMm4M2CC2gC1gC4gHuGa2MbPVUEisuWKD/h5gNr4xCwhvArr9LM8FIDlSnRTfVQMqkwR/e16vFlPVkHbWF2/RcNIFk1k8EYZTiDKcVy4YUmKC5jMHLFfD+TvTzyRYNun0J0/4BFzTlXhu7pipAAAAAElFTkSuQmCC") 1x, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAB2ElEQVR42u2Zv4oUQRCHv+qZXffWOz0MRE4wER/gAkEzxVcQfAJ9B1Njn+TwAcwEX0AxMRAMTRTGdW//zkz/DLZ3VzkQTtu7OagfNDN0zzT9VVVXUAUu1z/Jsu0kFaf8I2Im90Am65dU3GeHkjlQ/uHbBtgFJrxn3yokOz9PSCsDfNc1Kk1pJGYSc4mFRJ3GUrJ5mp9KSGKsR38Zer+pzIhTUAAtEJKlJ8S0ErRzwudZvJ8HoKam5DVj9mjSXGCfkkMMQs1o+HX5sS1CnA3KGUbA+Lb2Yzdv10T3wnwVPnc+VJ80fPFcBy+f5E19K2fnug8hjR5SIHJ5bd8g+tzYO5jeunIdKTw+UrG5P50IIQCzuLnYZpGxItsYEY2WvVoNZvEImZEn84QzTFn2P3YNXHA5gAM4gAM4gAM4gAM4gAM4gAM4gAM4gAM4wDkDSEUqla+f273NoFfYom8BqXjwhk6WFtv0tnqOdLxeKtoY+TJe7B7XU8zatxk9UGay/q8dmkBJJHKoCBj8GPaHr57evf355tVLPNPDMMDaBe+63aGZSFRqqNQwUsssrXW+Q5OsTgEMWB1ObGrR25p1Vzs0ERFPHk7btBEvRofmjJSz0X3alCxvdLs6oJ9jLvOj4PaAUAAAAABJRU5ErkJggg==") 2x) 12 12, text;
+  cursor: image-set(url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABKUlEQVR42u2VvUpDQRCFv9kbk4AEwcI0gkIkhQ9h6VuIpPUhIvga6fMcksY3sFQs7AJe86Mx2eyxuCakMHFNrthkYGFn2OWbOcUcIyYk923dLPDfYVHdpxxhJBgOsMoHoS/EAU+YTdZDSxk81T4vmiKJgUTv6y6Jrk5XSgi45bOZANhjgOOSIQ0Cd5U3r0b7vkWPBo7nWTv5aDlS6/BhJJWuryzyn4t69ajymVRAlIMzpvXqbpbL8gEc4ztmfiZFMvahY+bnMm4M2CC2gC1gC4gHuGa2MbPVUEisuWKD/h5gNr4xCwhvArr9LM8FIDlSnRTfVQMqkwR/e16vFlPVkHbWF2/RcNIFk1k8EYZTiDKcVy4YUmKC5jMHLFfD+TvTzyRYNun0J0/4BFzTlXhu7pipAAAAAElFTkSuQmCC") 1x, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAB2ElEQVR42u2Zv4oUQRCHv+qZXffWOz0MRE4wER/gAkEzxVcQfAJ9B1Njn+TwAcwEX0AxMRAMTRTGdW//zkz/DLZ3VzkQTtu7OagfNDN0zzT9VVVXUAUu1z/Jsu0kFaf8I2Im90Am65dU3GeHkjlQ/uHbBtgFJrxn3yokOz9PSCsDfNc1Kk1pJGYSc4mFRJ3GUrJ5mp9KSGKsR38Zer+pzIhTUAAtEJKlJ8S0ErRzwudZvJ8HoKam5DVj9mjSXGCfkkMMQs1o+HX5sS1CnA3KGUbA+Lb2Yzdv10T3wnwVPnc+VJ80fPFcBy+f5E19K2fnug8hjR5SIHJ5bd8g+tzYO5jeunIdKTw+UrG5P50IIQCzuLnYZpGxItsYEY2WvVoNZvEImZEn84QzTFn2P3YNXHA5gAM4gAM4gAM4gAM4gAM4gAM4gAM4gAM4wDkDSEUqla+f273NoFfYom8BqXjwhk6WFtv0tnqOdLxeKtoY+TJe7B7XU8zatxk9UGay/q8dmkBJJHKoCBj8GPaHr57evf355tVLPNPDMMDaBe+63aGZSFRqqNQwUsssrXW+Q5OsTgEMWB1ObGrR25p1Vzs0ERFPHk7btBEvRofmjJSz0X3alCxvdLs6oJ9jLvOj4PaAUAAAAABJRU5ErkJggg==") 2x) 12 12, text;
+}
+
 /* 霓虹雾:青/电蓝/品红极淡光晕,缓慢漂移 */
 body::before {
   content: '';
@@ -1488,6 +1495,76 @@ html.glitching-3 .gfx-block {
   70%  { opacity: 1; }
 }
 
+/* ---------- 自定义右键菜单:监控站控制面板 ---------- */
+#ctx-menu {
+  position: fixed;
+  z-index: 500; /* 弹窗(200/210)之上,装饰性故障层(999,不挡交互)之下 */
+  min-width: 200px;
+  padding: 6px;
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  clip-path: var(--notch);
+  font-family: var(--mono);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.65), 0 0 18px rgba(0, 240, 255, 0.07);
+  transform-origin: top left;
+  user-select: none;
+}
+
+#ctx-menu.hidden { display: none; }
+
+/* CRT 竖向展开入场,steps 制造硬切帧感 */
+#ctx-menu.opening { animation: ctx-in 0.16s steps(3, end); }
+
+@keyframes ctx-in {
+  0%   { transform: scaleY(0.35); filter: brightness(2.2); }
+  60%  { transform: scaleY(1.04); }
+  100% { transform: none; filter: none; }
+}
+
+.ctx-head {
+  padding: 6px 10px 7px;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.6rem;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.ctx-item:hover {
+  background: rgba(255, 42, 109, 0.14);
+  box-shadow: inset 2px 0 0 var(--accent-2);
+  color: #fff;
+}
+
+.ctx-item.is-disabled { opacity: 0.35; pointer-events: none; }
+
+.ctx-hint {
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+.ctx-item:hover .ctx-hint { color: var(--accent); }
+
+.ctx-sep {
+  height: 1px;
+  margin: 5px 8px;
+  background: var(--line);
+}
+
 /* ---------- config.json 特效开关 ----------
    JS 读取 config.json,把关闭项映射为 <html> 上的 fx-off-* 类,
    纯 CSS 特效由以下规则关断;JS 型特效在各自触发点检查开关 */
@@ -1551,5 +1628,6 @@ html.fx-off-crt-modal .easter-inner {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  #ctx-menu.opening { animation: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

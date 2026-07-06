@@ -19,7 +19,8 @@
     "crtModal         弹窗 CRT 开机动画(关闭则回退普通弹出)",
     "snapBurst        整页翻页落定时触发微故障",
     "monitorCut       翻页监控切台:雪花噪点硬切换 + OSD 频道标签(关闭则回退平滑滚动)",
-    "customCursor     自定义光标:青色十字准星,悬停可点击元素变品红锁定框(关闭则回退系统光标)"
+    "customCursor     自定义光标:青色十字准星,悬停可点击元素变品红锁定框(关闭则回退系统光标)",
+    "contextMenu      自定义右键菜单:导航/复制/外链的控制面板(关闭则回退浏览器原生菜单)"
   ],
   "effects": {
     "scanlines": true,
@@ -40,6 +41,7 @@
     "crtModal": true,
     "snapBurst": true,
     "monitorCut": true,
-    "customCursor": true
+    "customCursor": true,
+    "contextMenu": true
   }
 }
