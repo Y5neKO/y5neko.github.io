@@ -848,9 +848,12 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   const root = document.documentElement;
   const syslog = document.getElementById('syslog');
 
-  const SRC = 'images/ghost.jpg';
-  const EYE = { x: 0.64, y: 0.34 }; // 贴图中眼睛的相对位置,凝视时用它对齐视口
-  let ready = false;
+  // 候选贴图:每次随机一位;eye 为贴图中眼睛的相对位置,凝视时用它对齐视口,
+  // ar(宽高比)在预加载完成后从图片实际尺寸读出
+  const GHOSTS = [
+    { src: 'images/ghost.jpg', eye: { x: 0.64, y: 0.34 }, ar: 1, ready: false },
+    { src: 'images/ghost2.jpg', eye: { x: 0.4, y: 0.33 }, ar: 1, ready: false },
+  ];
 
   let active = false;
   let clearTimer = 0;
@@ -877,47 +880,70 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 
   // strength 1 = 惊鸿一瞥(碎片少、闪得快) / 2 = 凝视(碎片密、停留久、压暗全屏)
   function show(strength) {
-    if (!FX.ghostGlimpse || !ready || active || document.hidden) return;
+    if (!FX.ghostGlimpse || active || document.hidden) return;
+    const pool = GHOSTS.filter((g) => g.ready);
+    if (!pool.length) return;
+    const ghost = pool[Math.floor(Math.random() * pool.length)];
     const gaze = strength >= 2;
     const W = window.innerWidth;
     const H = window.innerHeight;
 
-    // 虚拟贴图:一张完整的"她"悬在屏幕后某处,所有碎片都从它上面对位采样
-    const S = Math.round(Math.min(W, H) * (gaze ? 0.72 : 0.5) * (0.9 + Math.random() * 0.25));
+    // 虚拟贴图:一张完整的"她"悬在屏幕后某处,所有碎片都从它上面对位采样;
+    // 以高度定尺寸,按图片宽高比撑开,过宽时再收回视口内
+    let SH = Math.round(Math.min(W, H) * (gaze ? 0.72 : 0.5) * (0.9 + Math.random() * 0.25));
+    SH = Math.min(SH, Math.round((W * 0.95) / ghost.ar));
+    const SW = Math.round(SH * ghost.ar);
     let ix, iy;
     if (gaze) {
       // 凝视:让眼睛落在视口左/右三分点,像贴着屏幕看你
-      ix = (Math.random() < 0.5 ? 0.33 : 0.67) * W - EYE.x * S;
-      iy = 0.38 * H - EYE.y * S;
+      ix = (Math.random() < 0.5 ? 0.33 : 0.67) * W - ghost.eye.x * SW;
+      iy = 0.38 * H - ghost.eye.y * SH;
     } else {
-      ix = Math.random() * (W - S * 0.6) - S * 0.2;
-      iy = Math.random() * (H - S * 0.6) - S * 0.2;
+      ix = Math.random() * (W - SW * 0.6) - SW * 0.2;
+      iy = Math.random() * (H - SH * 0.6) - SH * 0.2;
     }
 
-    const count = gaze ? 12 + Math.floor(Math.random() * 5) : 5 + Math.floor(Math.random() * 4);
     const frag = document.createDocumentFragment();
-    for (let i = 0; i < count; i++) {
+
+    // 单块碎片:尺寸按贴图比例走,屏幕越大块越大;位置对位采样
+    function addShard(cx, cy, w, h, broken, delayMax) {
       const d = document.createElement('div');
-      // 少数碎片仍是坏块(反相冷调),和人影碎片交错,不至于太"干净"
-      d.className = 'gfx-shard' + (Math.random() < 0.28 ? ' shard-broken' : '');
-      // 碎片中心朝眼睛聚拢(两次随机求和≈中间值分布),凝视时聚得更紧
-      const spread = gaze ? 0.55 : 0.9;
-      const cx = clamp(ix + S * (EYE.x + (Math.random() + Math.random() - 1) * spread), ix + 16, ix + S - 16);
-      const cy = clamp(iy + S * (EYE.y + (Math.random() + Math.random() - 1) * spread * 1.1), iy + 16, iy + S - 16);
-      const w = 40 + Math.random() * (gaze ? 170 : 120);
-      const h = 14 + Math.random() * (gaze ? 90 : 52);
+      d.className = 'gfx-shard' + (broken ? ' shard-broken' : '');
       const x = clamp(cx - w / 2, 0, W - w);
       const y = clamp(cy - h / 2, 0, H - h);
       d.style.left = x + 'px';
       d.style.top = y + 'px';
       d.style.width = w + 'px';
       d.style.height = h + 'px';
-      d.style.backgroundImage = 'url(' + SRC + ')';
-      d.style.backgroundSize = S + 'px ' + S + 'px';
+      d.style.backgroundImage = 'url(' + ghost.src + ')';
+      d.style.backgroundSize = SW + 'px ' + SH + 'px';
       d.style.backgroundPosition = (ix - x) + 'px ' + (iy - y) + 'px';
       d.style.setProperty('--gx', (Math.random() * 10 - 5).toFixed(1) + 'px');
-      d.style.animationDelay = (Math.random() * (gaze ? 0.22 : 0.1)).toFixed(2) + 's';
+      d.style.animationDelay = (Math.random() * delayMax).toFixed(2) + 's';
       frag.appendChild(d);
+    }
+
+    // 散落碎片:中心朝眼睛聚拢(两次随机求和≈中间值分布),凝视时聚得更紧
+    const count = gaze ? 11 + Math.floor(Math.random() * 4) : 5 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < count; i++) {
+      const spread = gaze ? 0.5 : 0.85;
+      const cx = clamp(ix + SW * (ghost.eye.x + (Math.random() + Math.random() - 1) * spread), ix + 16, ix + SW - 16);
+      const cy = clamp(iy + SH * (ghost.eye.y + (Math.random() + Math.random() - 1) * spread * 1.1), iy + 16, iy + SH - 16);
+      const w = Math.max(56, SW * (0.15 + Math.random() * (gaze ? 0.27 : 0.22)));
+      const h = Math.max(22, SH * (0.06 + Math.random() * (gaze ? 0.16 : 0.12)));
+      // 少数碎片仍是坏块(反相冷调),和人影碎片交错,不至于太"干净"
+      addShard(cx, cy, w, h, Math.random() < 0.28, gaze ? 0.22 : 0.1);
+    }
+
+    // 凝视时最后叠两条横长的"眼部条带",在最上层压住眼睛——保证"看你"一定发生
+    if (gaze) {
+      for (let i = 0; i < 2; i++) {
+        const cx = ix + SW * ghost.eye.x + (Math.random() * 30 - 15);
+        const cy = iy + SH * ghost.eye.y + (Math.random() * 14 - 7);
+        const w = SW * (0.44 + Math.random() * 0.18);
+        const h = SH * (0.1 + Math.random() * 0.07);
+        addShard(cx, cy, w, h, false, 0.12);
+      }
     }
     layer.replaceChildren(frag);
 
@@ -951,9 +977,14 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 
   fxReady.then(() => {
     if (!FX.ghostGlimpse) return;
-    const img = new Image();
-    img.onload = () => { ready = true; };
-    img.src = SRC;
+    GHOSTS.forEach((g) => {
+      const img = new Image();
+      img.onload = () => {
+        g.ar = img.naturalWidth / img.naturalHeight;
+        g.ready = true;
+      };
+      img.src = g.src;
+    });
     gazeLoop(15000 + Math.random() * 15000);
   });
 })();
