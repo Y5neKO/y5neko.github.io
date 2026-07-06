@@ -10,6 +10,7 @@ const FX = {
   noise: true,            // 电视噪点
   scanbeam: true,         // 缓慢下移扫光带
   glitchBursts: true,     // 全屏随机故障爆发(三种变体)
+  ghostGlimpse: true,     // 数据块里的"她":人影碎片闪现 + 低频凝视
   textCorruption: true,   // 全局文字乱码闪烁
   glitchTitle: true,      // 标题/logo 双通道色散错位
   dust: true,             // 漂浮尘埃粒子
@@ -802,6 +803,8 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       });
       root.classList.add('glitching-3');
       setTimeout(() => root.classList.remove('glitching-3'), 300);
+      // 一部分崩坏块不是噪声,而是"露出"屏幕后面的她
+      if (gfxApi.ghost && Math.random() < 0.55) gfxApi.ghost(1);
     }
     schedule();
   }
@@ -829,6 +832,129 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 
   fxReady.then(() => {
     if (FX.glitchBursts) schedule();
+  });
+})();
+
+// ---------- 9.5 数据块里的"她":人影碎片闪现 ----------
+// 宏块崩坏时,部分损坏块不再是反相噪声,而是"露出"屏幕后面的另一路画面——
+// 所有碎片从同一张虚拟贴图上对位采样,拼得出人影的局部,像有人一直站在信号背后。
+// 平时只闪半秒残影;低频触发"凝视":眼睛对齐视口三分点、碎片聚拢、全屏压暗,
+// syslog 同步冒出目标告警;切走标签页又切回来,也会被她"注意到"。
+(function ghostGlimpse() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const layer = document.querySelector('.gfx-ghost');
+  if (!layer) return;
+  const root = document.documentElement;
+  const syslog = document.getElementById('syslog');
+
+  const SRC = 'images/ghost.jpg';
+  const EYE = { x: 0.64, y: 0.34 }; // 贴图中眼睛的相对位置,凝视时用它对齐视口
+  let ready = false;
+
+  let active = false;
+  let clearTimer = 0;
+
+  const GAZE_LOGS = [
+    'WARN cam[0]: unregistered entity in frame',
+    'WARN cam[0]: entity is facing the lens',
+    'WARN tracker: eye contact detected (target: you)',
+    'WARN proc: she_sees_you.exe respawned (pid 404)',
+  ];
+
+  function logWarn(text) {
+    if (!syslog) return;
+    const now = new Date();
+    const two = (n) => String(n).padStart(2, '0');
+    const div = document.createElement('div');
+    div.textContent = two(now.getHours()) + ':' + two(now.getMinutes()) + ':' + two(now.getSeconds()) + ' ' + text;
+    div.className = 'syslog-warn';
+    syslog.appendChild(div);
+    while (syslog.childElementCount > 22) syslog.firstElementChild.remove();
+  }
+
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  // strength 1 = 惊鸿一瞥(碎片少、闪得快) / 2 = 凝视(碎片密、停留久、压暗全屏)
+  function show(strength) {
+    if (!FX.ghostGlimpse || !ready || active || document.hidden) return;
+    const gaze = strength >= 2;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    // 虚拟贴图:一张完整的"她"悬在屏幕后某处,所有碎片都从它上面对位采样
+    const S = Math.round(Math.min(W, H) * (gaze ? 0.72 : 0.5) * (0.9 + Math.random() * 0.25));
+    let ix, iy;
+    if (gaze) {
+      // 凝视:让眼睛落在视口左/右三分点,像贴着屏幕看你
+      ix = (Math.random() < 0.5 ? 0.33 : 0.67) * W - EYE.x * S;
+      iy = 0.38 * H - EYE.y * S;
+    } else {
+      ix = Math.random() * (W - S * 0.6) - S * 0.2;
+      iy = Math.random() * (H - S * 0.6) - S * 0.2;
+    }
+
+    const count = gaze ? 12 + Math.floor(Math.random() * 5) : 5 + Math.floor(Math.random() * 4);
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < count; i++) {
+      const d = document.createElement('div');
+      // 少数碎片仍是坏块(反相冷调),和人影碎片交错,不至于太"干净"
+      d.className = 'gfx-shard' + (Math.random() < 0.28 ? ' shard-broken' : '');
+      // 碎片中心朝眼睛聚拢(两次随机求和≈中间值分布),凝视时聚得更紧
+      const spread = gaze ? 0.55 : 0.9;
+      const cx = clamp(ix + S * (EYE.x + (Math.random() + Math.random() - 1) * spread), ix + 16, ix + S - 16);
+      const cy = clamp(iy + S * (EYE.y + (Math.random() + Math.random() - 1) * spread * 1.1), iy + 16, iy + S - 16);
+      const w = 40 + Math.random() * (gaze ? 170 : 120);
+      const h = 14 + Math.random() * (gaze ? 90 : 52);
+      const x = clamp(cx - w / 2, 0, W - w);
+      const y = clamp(cy - h / 2, 0, H - h);
+      d.style.left = x + 'px';
+      d.style.top = y + 'px';
+      d.style.width = w + 'px';
+      d.style.height = h + 'px';
+      d.style.backgroundImage = 'url(' + SRC + ')';
+      d.style.backgroundSize = S + 'px ' + S + 'px';
+      d.style.backgroundPosition = (ix - x) + 'px ' + (iy - y) + 'px';
+      d.style.setProperty('--gx', (Math.random() * 10 - 5).toFixed(1) + 'px');
+      d.style.animationDelay = (Math.random() * (gaze ? 0.22 : 0.1)).toFixed(2) + 's';
+      frag.appendChild(d);
+    }
+    layer.replaceChildren(frag);
+
+    active = true;
+    root.classList.add(gaze ? 'ghosting-gaze' : 'ghosting');
+    if (gaze) logWarn(GAZE_LOGS[Math.floor(Math.random() * GAZE_LOGS.length)]);
+    clearTimeout(clearTimer);
+    clearTimer = setTimeout(() => {
+      root.classList.remove('ghosting', 'ghosting-gaze');
+      layer.replaceChildren();
+      active = false;
+    }, gaze ? 2450 : 780);
+  }
+
+  gfxApi.ghost = show;
+
+  // 凝视自调度:首次约二十秒后见面,之后每 50~95 秒被"抓到"一次
+  function gazeLoop(delay) {
+    setTimeout(() => {
+      show(2);
+      gazeLoop(50000 + Math.random() * 45000);
+    }, delay);
+  }
+
+  // 打破第四面墙:切走超过 15 秒再切回页面,她"注意到你回来了"
+  let hiddenAt = 0;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { hiddenAt = Date.now(); return; }
+    if (Date.now() - hiddenAt > 15000) setTimeout(() => show(2), 900);
+  });
+
+  fxReady.then(() => {
+    if (!FX.ghostGlimpse) return;
+    const img = new Image();
+    img.onload = () => { ready = true; };
+    img.src = SRC;
+    gazeLoop(15000 + Math.random() * 15000);
   });
 })();
 

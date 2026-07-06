@@ -1362,6 +1362,89 @@ html.glitching-3 .gfx-block {
   100% { transform: none; opacity: 0; }
 }
 
+/* ===== 数据块里的"她"(ghostGlimpse) =====
+   崩坏块从同一张虚拟贴图对位采样,碎片能拼出人影局部——像屏幕后面有人。
+   html.ghosting 短闪残影;html.ghosting-gaze 凝视:停留更久 + 暗角 + 全页压暗 */
+.gfx-ghost {
+  position: absolute;
+  inset: 0;
+}
+
+/* 凝视时的暗角,把视线压向碎片 */
+.gfx-ghost::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, transparent 42%, rgba(2, 3, 6, 0.6));
+  opacity: 0;
+}
+
+html.ghosting-gaze .gfx-ghost::before { animation: ghost-veil 2.3s ease both; }
+
+@keyframes ghost-veil {
+  0%   { opacity: 0; }
+  22%  { opacity: 1; }
+  78%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 人影碎片:内容由 JS 对位采样,这里只管质感——宏块边缘的品红/青色散镶边 */
+.gfx-shard {
+  position: absolute;
+  opacity: 0;
+  background-repeat: no-repeat;
+  box-shadow:
+    2px 0 0 rgba(255, 42, 109, 0.22),
+    -2px 0 0 rgba(0, 240, 255, 0.22),
+    inset 0 0 0 1px rgba(0, 240, 255, 0.1);
+  filter: saturate(0.78) contrast(1.08) brightness(1.04);
+}
+
+/* 混在人影里的坏块:反相冷调,和宏块崩坏同一质感 */
+.gfx-shard.shard-broken {
+  filter: invert(0.85) hue-rotate(150deg) saturate(0.6) contrast(1.2);
+}
+
+html.ghosting .gfx-shard { animation: shard-glimpse 0.65s steps(5) both; }
+html.ghosting-gaze .gfx-shard { animation: shard-gaze 2.2s steps(16) both; }
+
+/* 惊鸿一瞥:闪两下就散 */
+@keyframes shard-glimpse {
+  0%   { opacity: 0.95; transform: translateX(var(--gx, 4px)); }
+  55%  { opacity: 0.6; transform: translateX(calc(var(--gx, 4px) * -0.6)); }
+  100% { opacity: 0; transform: none; }
+}
+
+/* 凝视:闪烁着显形,停住,再碎开 */
+@keyframes shard-gaze {
+  0%   { opacity: 0; transform: translateX(var(--gx, 4px)); }
+  8%   { opacity: 1; transform: translateX(calc(var(--gx, 4px) * -0.5)); }
+  16%  { opacity: 0.5; }
+  26%  { opacity: 1; transform: translateX(var(--gx, 4px)); }
+  72%  { opacity: 0.92; transform: none; }
+  86%  { opacity: 0.4; transform: translateX(calc(var(--gx, 4px) * 0.8)); }
+  100% { opacity: 0; transform: none; }
+}
+
+/* 凝视期间雪花涌动、全页压暗去色,像信号被另一路画面占用 */
+html.ghosting-gaze .gfx-noise {
+  opacity: 0.14;
+  animation: noise-jiggle 0.18s steps(4) infinite;
+}
+
+html.ghosting-gaze .hero,
+html.ghosting-gaze main,
+html.ghosting-gaze .footer {
+  animation: gaze-dim 2.3s ease both;
+}
+
+@keyframes gaze-dim {
+  0%   { filter: none; }
+  22%  { filter: brightness(0.78) saturate(0.55); }
+  78%  { filter: brightness(0.82) saturate(0.6); }
+  100% { filter: none; }
+}
+
 /* ---------- 彩蛋 ---------- */
 .easter-egg {
   position: fixed;
