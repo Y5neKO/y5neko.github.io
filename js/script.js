@@ -257,6 +257,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       print('  about       跳转到 #about');
       print('  projects    跳转到 #projects');
       print('  contact     跳转到 #contact');
+      print('  blog        打开技术博客');
       print('  echo <msg>  复读机');
       print('  date        现在几点了');
       print('  history     命令历史');
@@ -300,6 +301,10 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     about() { print('scrolling to #about ...', 'out-dim'); scrollToSection('about'); },
     projects() { print('scrolling to #projects ...', 'out-dim'); scrollToSection('projects'); },
     contact() { print('scrolling to #contact ...', 'out-dim'); scrollToSection('contact'); },
+    blog() {
+      print('opening blog in new tab ...', 'out-dim');
+      window.open('https://y5neko.github.io/blog/', '_blank', 'noopener');
+    },
     echo(args) { print(esc(args.join(' ')) || ''); },
     date() {
       print(new Date().toLocaleString('zh-CN'));
