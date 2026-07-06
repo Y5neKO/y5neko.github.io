@@ -140,6 +140,25 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     }).join('');
   }
 
+  // -- 兴趣:游戏卡片(server / uid 留空显示占位符,在 data.js 录入后自动点亮)--
+  const gameGrid = document.querySelector('.game-grid');
+  if (gameGrid && SITE.interests && SITE.interests.games) {
+    const field = (label, val, pad) =>
+      `<span class="game-kv">${label} ▸ <span class="game-val${val ? '' : ' is-empty'}">${val ? h(val) : pad}</span></span>`;
+    gameGrid.innerHTML = SITE.interests.games.map((g) => `
+      <div class="game-card card" data-game="${h(g.key)}">
+        <img class="game-icon" src="${h(g.icon)}" alt="${h(g.name)} 图标" loading="lazy">
+        <div class="game-info">
+          <div class="game-name">${h(g.name)}</div>
+          <div class="game-en">${h(g.en || '')}</div>
+          <div class="game-meta">
+            ${field('SERVER', g.server, '----')}
+            ${field('UID', g.uid, '---------')}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
   // -- 关于:统计数字 --
   const statCard = document.querySelector('.stat-card');
   if (statCard) {
@@ -404,6 +423,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       print('  cat <file>  查看文件内容');
       print('  about       跳转到 #about');
       print('  projects    跳转到 #projects');
+      print('  interests   跳转到 #interests');
       print('  contact     跳转到 #contact');
       print('  blog        打开技术博客');
       print('  echo <msg>  复读机');
@@ -482,6 +502,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     },
     about() { print('scrolling to #about ...', 'out-dim'); scrollToSection('about'); },
     projects() { print('scrolling to #projects ...', 'out-dim'); scrollToSection('projects'); },
+    interests() { print('scrolling to #interests ...', 'out-dim'); scrollToSection('interests'); },
     contact() { print('scrolling to #contact ...', 'out-dim'); scrollToSection('contact'); },
     blog() {
       print('opening blog in new tab ...', 'out-dim');

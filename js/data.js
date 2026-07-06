@@ -166,6 +166,24 @@ const SITE = {
     },
   ],
 
+  // ---- 兴趣:游戏 / 追番等,按块扩展 ----
+  // 加一个游戏:复制一个 { } 改内容;server / uid 留空则显示占位符,待录入
+  //   key     唯一标识(小写)
+  //   name    中文名
+  //   en      英文名(卡片副标)
+  //   icon    官方图标路径(images/games/)
+  //   server  游戏服务器(如 官服 / B服 / 国际服)
+  //   uid     游戏内 UID
+  interests: {
+    games: [
+      { key: 'arknights', name: '明日方舟', en: 'Arknights', icon: 'images/games/arknights.jpg', server: '中国 · 官服', uid: '403061027' },
+      { key: 'endfield', name: '明日方舟：终末地', en: 'Arknights: Endfield', icon: 'images/games/endfield.jpg', server: '中国 · 官服', uid: '1315578679' },
+      { key: 'bluearchive', name: '蔚蓝档案', en: 'Blue Archive', icon: 'images/games/bluearchive.jpg', server: '中国 · 官服', uid: '' },
+      { key: 'genshin', name: '原神', en: 'Genshin Impact', icon: 'images/games/genshin.jpg', server: '中国 · 官服', uid: '106652539' },
+      { key: 'wutheringwaves', name: '鸣潮', en: 'Wuthering Waves', icon: 'images/games/wutheringwaves.png', server: '中国 · 官服', uid: '134294442' },
+    ],
+  },
+
   // ---- 联系方式 ----
   contact: {
     intro: '合作意向或技术交流,可通过以下渠道联系。',

@@ -1156,6 +1156,62 @@ body::after {
 
 .footer-code { margin-top: 0.4rem; color: var(--text-dim); opacity: 0.7; }
 
+/* ---------- 兴趣:游戏卡片 ---------- */
+.hobby-label {
+  margin-bottom: 1.2rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem;
+}
+
+.game-card {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  padding: 1.15rem 1.35rem;
+}
+
+.game-icon {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  object-fit: cover;
+  clip-path: var(--notch);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+}
+
+.game-name { font-size: 1.02rem; font-weight: 600; letter-spacing: 0.04em; }
+
+.game-en {
+  margin-top: 0.15rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.game-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.4rem;
+  margin-top: 0.55rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.game-val { color: var(--accent); }
+
+/* 未录入的 server / uid:暗色虚位,等 data.js 填上后自动点亮 */
+.game-val.is-empty { color: var(--text-dim); opacity: 0.55; letter-spacing: 0.18em; }
+
 /* ---------- 全屏故障艺术特效 ----------
    常驻:CRT 扫描线 / 电视噪点 / 慢速扫光
    爆发:html.glitching 期间 RGB 色散 + 撕裂条带 + 页面抖动(JS 随机触发) */
@@ -1710,6 +1766,8 @@ html.fx-off-crt-modal .easter-inner {
   .proj-item { flex: 0 0 auto; min-width: 160px; }
 
   .terminal-body { height: 280px; }
+
+  .game-grid { grid-template-columns: 1fr; }
 
   /* 小屏内容可能超过一屏,翻页吸附易卡顿,退回自由滚动 */
   html { scroll-snap-type: none; }
