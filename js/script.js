@@ -268,40 +268,167 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     if (!reduced) requestAnimationFrame(frame);
   }
 
-  // -- 滚动系统日志流 --
-  const syslog = document.getElementById('syslog');
+  // -- 滚动系统日志流:监控主机(NVR)风格,呼应 REC/切台/信号入侵的叙事 --
+  // 常规日志是可信的监控运维流水;WARN 藏着具体但异样的细节;
+  // SCENES 是低频触发的多行"剧情演绎",按顺序逐行播出,
+  // 结构统一为:发现异常 → 排查 → 异常升级 → 系统若无其事地收尾
   const LOGS = [
-    'sensor[3]: relay heartbeat ok (12ms)',
-    'net: uplink latency 46ms, jitter 3ms',
-    'build: cache hit ratio 94.2%',
-    'watchdog: service "blog" healthy',
-    'auth: session token rotated',
-    'fs: journal sync complete (0 errors)',
-    'sys: gc pause 3ms, heap 12.4MiB',
-    'cron: backup snapshot created',
-    'net: retry backoff 2000ms on ch.7',
-    'kernel: thermal zone 0 at 41C',
+    'cam[1]: feed stable, 30fps, bitrate 4.2Mbps',
+    'cam[3]: exposure auto-adjust (night mode)',
+    'nvr: segment saved rec_ch01_0492.ts (512MiB)',
+    'nvr: disk health ok, 82% used',
+    'prts: neural link stable, latency 12ms',
+    'prts: memory archive integrity ok (4096 records)',
+    'prts: doctor terminal session active',
+    'rhodes: hull integrity 100%, cruising at 34km/h',
+    'rhodes: deck 1-4 patrol clear',
+    'ops: no catastrophe within 200km (72h forecast)',
+    'medical: oripathy screening queue empty',
+    'medical: mon3tr cell activity nominal (sleep)',
+    'engineering: closure pushed firmware v3.0.1',
+    'engineering: originium reactor output 87%, stable',
+    'logistics: supply manifest #0092 verified',
+    'tracker: 1 viewer active on ch.01 (doctor)',
+    'signal: carrier locked on ch.01-05',
+    'motion: sector 1-6 sweep clear',
+    'osd: timecode resync ok (+0.3s)',
+    'osd: overlay REC refreshed',
+    'sys: uptime 42d 03:14, load 0.31',
+    'power: ups on line, battery 100%',
   ];
   const WARNS = [
-    'WARN power: grid voltage fluctuation',
-    'WARN sensor[7]: signal degraded',
-    'WARN net: packet loss 2.1% on uplink',
-    'WARN storage: sector remap on /dev/sda',
+    'WARN motion: movement in sector 7, frame empty',
+    'WARN cam[0]: 1 face detected, 0 registered',
+    'WARN cam[4]: lens obstruction 2s, cleared',
+    'WARN audio: signal picked up on muted channel',
+    'WARN tracker: viewer count 2 (expected 1)',
+    'WARN prts: memory sector 0x0D locked (priority: architect)',
+    'WARN prts: response generated 0.4s before query',
+    'WARN terminal: doctor authorization predates all records',
+    'WARN medical: heartbeat on cam feed, ward empty',
+    'WARN ops: unregistered operator on deck 3, gone on arrival',
+    'WARN nvr: 1 segment shorter than expected',
+    'WARN signal: interference pattern non-random',
   ];
+  const SCENES = [
+    [ // 普瑞赛斯残响:清不掉的未知进程
+      'prts: routine self-diagnosis',
+      'prts: core modules ok, 1 unknown process',
+      'WARN prts: process "priestess.sys" not in manifest',
+      'prts: terminating unknown process ...',
+      'ERR prts: access denied (authority level: architect)',
+      'WARN prts: process priority elevated to root',
+      'prts: self-diagnosis passed (1 exception ignored)',
+      'prts: 晚安,博士。',
+    ],
+    [ // 加密的 0001 号记忆档案
+      'prts: memory archive integrity check',
+      'prts: 4096 records verified',
+      'WARN prts: record #0001 encrypted with unknown key',
+      'prts: metadata date precedes rhodes island',
+      'prts: metadata location: "babel"',
+      'terminal: doctor requested playback of #0001',
+      "ERR prts: playback denied — kal'tsit authorization required",
+      'prts: request not logged (as instructed)',
+    ],
+    [ // 多出来的观看者
+      'tracker: routine headcount on ch.01',
+      'WARN tracker: viewer count 2 (expected 1)',
+      'tracker: recounting ...',
+      'tracker: viewer count 1 (doctor)',
+      'WARN tracker: second viewer left before recount finished',
+      'prts: log suppressed by retention policy',
+    ],
+    [ // 静音频道上的声音
+      'audio: routine level check, all channels muted',
+      'WARN audio: level -41dB on muted ch.03',
+      'audio: applying hard mute',
+      'WARN audio: level rising, -29dB',
+      'audio: sampling waveform for analysis',
+      'ERR audio: pattern matches speech, language: pre-terran',
+      'audio: ch.03 line physically disconnected',
+      'WARN audio: level steady, -18dB',
+    ],
+    [ // 办公室里的第二张脸
+      'cam[0]: routine sweep of dr. office',
+      'cam[0]: doctor at terminal (you)',
+      'WARN cam[0]: reflection count mismatch on screen',
+      'cam[0]: enhance region (x:0.66, y:0.34)',
+      'ERR cam[0]: region decodes to corrupted blocks',
+      'cam[0]: snapshot saved for review',
+      'prts: do not worry, doctor. it is only me.',
+    ],
+    [ // Mon3tr 无指令重构
+      'medical: mon3tr cell activity rising',
+      'medical: no directive issued',
+      'WARN mon3tr: reconstruction pattern matches no template',
+      "kal'tsit: manual override, sedation",
+      'medical: mon3tr activity nominal',
+      'WARN medical: archived pattern resembles a human figure',
+    ],
+    [ // 可露希尔的"惊喜"
+      'engineering: closure inventory sync',
+      'WARN logistics: 1 crate unaccounted, manifest #0093',
+      'closure: relax, it is a surprise for the doctor',
+      'logistics: crate #0093 located at dr. office door',
+      'WARN cam[2]: knock detected, corridor empty',
+      'terminal: incident closed (gift accepted)',
+    ],
+    [ // 天灾信使的预报
+      'ops: catastrophe forecast update requested',
+      'ops: trajectory clear for 72h',
+      'WARN ops: messenger arrived without a message',
+      'ops: requery weather relay',
+      'ops: trajectory confirmed clear (source: unknown relay)',
+      'WARN ops: forecast signed "P."',
+    ],
+    [ // 录像管线自检:多出来的 3 帧
+      'selftest: rec pipeline verify',
+      'rec: writing test pattern',
+      'WARN rec: test pattern replaced mid-frame',
+      'rec: comparing frame sources',
+      'WARN rec: 3 frames not from any camera aboard',
+      'selftest: passed (deviations ignored)',
+    ],
+  ];
+  const syslog = document.getElementById('syslog');
+  let scene = null;
+  let sceneIdx = 0;
+  let sceneEndAt = Date.now();
 
   function two(n) { return String(n).padStart(2, '0'); }
 
-  function logLine() {
+  function pushLine(text) {
     const now = new Date();
     const ts = two(now.getHours()) + ':' + two(now.getMinutes()) + ':' + two(now.getSeconds());
-    const warn = Math.random() < 0.16;
-    const pool = warn ? WARNS : LOGS;
     const div = document.createElement('div');
-    div.textContent = ts + ' ' + pool[Math.floor(Math.random() * pool.length)];
-    if (warn) div.className = 'syslog-warn';
+    div.textContent = ts + ' ' + text;
+    if (text.startsWith('ERR')) div.className = 'syslog-err';
+    else if (text.startsWith('WARN')) div.className = 'syslog-warn';
     syslog.appendChild(div);
     while (syslog.childElementCount > 22) syslog.firstElementChild.remove();
-    setTimeout(logLine, 900 + Math.random() * 1100);
+  }
+
+  function logLine() {
+    let text;
+    let delay;
+    if (!scene && Date.now() - sceneEndAt > 100000 && Math.random() < 0.08) {
+      // 距上一段剧情 100s 以上,才有机会开新篇
+      scene = SCENES[Math.floor(Math.random() * SCENES.length)];
+      sceneIdx = 0;
+    }
+    if (scene) {
+      text = scene[sceneIdx++];
+      delay = 600 + Math.random() * 700; // 剧情节奏略快,读起来连贯
+      if (sceneIdx >= scene.length) { scene = null; sceneEndAt = Date.now(); }
+    } else {
+      const warn = Math.random() < 0.16;
+      const pool = warn ? WARNS : LOGS;
+      text = pool[Math.floor(Math.random() * pool.length)];
+      delay = 900 + Math.random() * 1100;
+    }
+    pushLine(text);
+    setTimeout(logLine, delay);
   }
 
   // -- 摄像机 REC 录制标识:时间码走秒;故障爆发时"失去信号",结束后恢复 --
@@ -952,6 +1079,8 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     'WARN cam[0]: entity is facing the lens',
     'WARN tracker: eye contact detected (target: you)',
     'WARN proc: she_sees_you.exe respawned (pid 404)',
+    'WARN prts: entity is not one of my processes',
+    'WARN prts: visual anomaly acknowledged. do not be afraid, doctor.',
   ];
 
   function logWarn(text) {
@@ -963,6 +1092,38 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     div.className = 'syslog-warn';
     syslog.appendChild(div);
     while (syslog.childElementCount > 22) syslog.firstElementChild.remove();
+  }
+
+  // 凝视专属:系统告警之后,"她"自己的话浮出日志——
+  // 无来源前缀、时间戳损坏成 ??:??:??,文字从乱码里逐段解码出来
+  const GAZE_VOICES = [
+    '我看见你了,博士。',
+    '别关掉画面。',
+    '你在找我吗?',
+    '这一次,轮到我看着你了。',
+    '我一直都在。',
+    '不要相信它说的话。',
+    '不准忘记我。',
+  ];
+
+  function logVoice() {
+    if (!syslog) return;
+    const text = '??:??:?? ' + GAZE_VOICES[Math.floor(Math.random() * GAZE_VOICES.length)];
+    const div = document.createElement('div');
+    div.className = 'syslog-gaze';
+    div.textContent = scrambled(text, 0, text.length);
+    syslog.appendChild(div);
+    while (syslog.childElementCount > 22) syslog.firstElementChild.remove();
+    let resolved = 0;
+    const timer = setInterval(() => {
+      resolved += 2;
+      if (resolved >= text.length) {
+        clearInterval(timer);
+        div.textContent = text;
+      } else {
+        div.textContent = scrambled(text, resolved, text.length);
+      }
+    }, 50);
   }
 
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -1023,8 +1184,8 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       const cy = clamp(iy + SH * (ghost.eye.y + (Math.random() + Math.random() - 1) * spread * 1.1), iy + 16, iy + SH - 16);
       const w = Math.max(56, SW * (0.15 + Math.random() * (gaze ? 0.27 : 0.22)));
       const h = Math.max(22, SH * (0.06 + Math.random() * (gaze ? 0.16 : 0.12)));
-      // 少数碎片仍是坏块(反相冷调),和人影碎片交错,不至于太"干净"
-      addShard(cx, cy, w, h, Math.random() < 0.28, gaze ? 0.22 : 0.1);
+      // 部分碎片是坏块(底片反相),和人影碎片交错,不至于太"干净";凝视时占大头
+      addShard(cx, cy, w, h, Math.random() < (gaze ? 0.65 : 0.28), gaze ? 0.22 : 0.1);
     }
 
     // 凝视时最后叠两条横长的"眼部条带",在最上层压住眼睛——保证"看你"一定发生
@@ -1042,7 +1203,10 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     active = true;
     lastAt = Date.now();
     root.classList.add(gaze ? 'ghosting-gaze' : 'ghosting');
-    if (gaze) logWarn(GAZE_LOGS[Math.floor(Math.random() * GAZE_LOGS.length)]);
+    if (gaze) {
+      logWarn(GAZE_LOGS[Math.floor(Math.random() * GAZE_LOGS.length)]);
+      setTimeout(logVoice, 1200); // 她盯着你的时候开口
+    }
     clearTimeout(clearTimer);
     clearTimer = setTimeout(() => {
       root.classList.remove('ghosting', 'ghosting-gaze');

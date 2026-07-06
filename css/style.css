@@ -193,6 +193,17 @@ body::after {
 }
 
 #syslog .syslog-warn { color: rgba(255, 42, 109, 0.75); }
+#syslog .syslog-err { color: rgba(255, 42, 60, 0.95); font-weight: 600; }
+
+/* "她"的话:凝视时浮出的特殊日志,品红发光 + 青色散错位 */
+#syslog .syslog-gaze {
+  color: #ff5c97;
+  font-weight: 600;
+  text-shadow:
+    1px 0 rgba(0, 240, 255, 0.55),
+    -1px 0 rgba(255, 42, 109, 0.45),
+    0 0 8px rgba(255, 42, 109, 0.35);
+}
 
 /* 摄像机 REC 录制标识:左上角(顶栏下方)红点 + 时间码,取景器式布局;
    故障爆发期间 JS 挂 .rec-lost,变为失联/乱码,结束后恢复 */
