@@ -1405,18 +1405,16 @@ html.glitching-2 .gfx-rollbar {
   100% { opacity: 0.7; top: 104%; }
 }
 
-/* ===== 花屏变体 3:数据块崩坏(macroblock datamosh) =====
-   随机迸出的矩形块把背后画面反相 + 色相偏移 + 错位闪烁,像编码宏块崩坏 */
+/* ===== 花屏变体 3:数据块崩坏(corrupted data blocks) =====
+   随机迸出的实心纯色小块:硬边、高饱和、无纹理,约半数横向分成
+   2~3 段纯色——复刻图像数据段损坏时解码出的 flat color 伪影
+   (颜色与分段由 JS 每次爆发随机生成) */
 .gfx-block {
   position: absolute;
   opacity: 0;
 }
 
 html.glitching-3 .gfx-block {
-  /* 反相 + 色相翻转到冷调,贴合青/品红霓虹调性 */
-  backdrop-filter: invert(0.82) contrast(1.15) saturate(0.5) hue-rotate(160deg);
-  -webkit-backdrop-filter: invert(0.82) contrast(1.15) saturate(0.5) hue-rotate(160deg);
-  box-shadow: inset 0 0 0 1px rgba(0, 240, 255, 0.15);
   animation: block-corrupt 0.28s steps(3) both;
 }
 
@@ -1429,28 +1427,11 @@ html.glitching-3 .gfx-block {
 
 /* ===== 数据块里的"她"(ghostGlimpse) =====
    崩坏块从同一张虚拟贴图对位采样,碎片能拼出人影局部——像屏幕后面有人。
-   html.ghosting 短闪残影;html.ghosting-gaze 凝视:停留更久 + 暗角 + 全页压暗 */
+   html.ghosting 短闪残影;html.ghosting-gaze 凝视:碎片更密、停留更久。
+   只出碎片,不动全屏(不加暗角/压暗/噪点涌动,避免整页亮度跳变) */
 .gfx-ghost {
   position: absolute;
   inset: 0;
-}
-
-/* 凝视时的暗角,把视线压向碎片 */
-.gfx-ghost::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 40%, transparent 42%, rgba(2, 3, 6, 0.6));
-  opacity: 0;
-}
-
-html.ghosting-gaze .gfx-ghost::before { animation: ghost-veil 2.3s ease both; }
-
-@keyframes ghost-veil {
-  0%   { opacity: 0; }
-  22%  { opacity: 1; }
-  78%  { opacity: 1; }
-  100% { opacity: 0; }
 }
 
 /* 人影碎片:内容由 JS 对位采样,这里只管质感——宏块边缘的品红/青色散镶边 */
@@ -1491,23 +1472,47 @@ html.ghosting-gaze .gfx-shard { animation: shard-gaze 2.2s steps(16) both; }
   100% { opacity: 0; transform: none; }
 }
 
-/* 凝视期间雪花涌动、全页压暗去色,像信号被另一路画面占用 */
-html.ghosting-gaze .gfx-noise {
-  opacity: 0.14;
-  animation: noise-jiggle 0.18s steps(4) infinite;
+
+/* ---------- 调试面板(config.json 顶层 "debug": true 或 URL ?debug) ---------- */
+#fx-debug {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1200; /* 盖过特效层,保证按钮可点 */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  width: 220px;
+  padding: 10px 12px;
+  background: rgba(6, 8, 14, 0.92);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  clip-path: var(--notch);
 }
 
-html.ghosting-gaze .hero,
-html.ghosting-gaze main,
-html.ghosting-gaze .footer {
-  animation: gaze-dim 2.3s ease both;
+.fxdbg-head {
+  grid-column: 1 / -1;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  color: var(--accent);
 }
 
-@keyframes gaze-dim {
-  0%   { filter: none; }
-  22%  { filter: brightness(0.78) saturate(0.55); }
-  78%  { filter: brightness(0.82) saturate(0.6); }
-  100% { filter: none; }
+.fxdbg-btn {
+  padding: 6px 4px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  background: rgba(0, 240, 255, 0.07);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.fxdbg-btn:hover {
+  color: var(--accent);
+  background: rgba(0, 240, 255, 0.18);
+  border-color: var(--accent);
 }
 
 /* ---------- 彩蛋 ---------- */

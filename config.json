@@ -1,6 +1,7 @@
 {
   "_readme": [
     "特效开关配置:true 开启 / false 关闭;删除某项则按默认值(开启)运行",
+    "debug(顶层键) 调试模式:true 时右下角出现特效控制台,可手动触发各特效;URL 带 ?debug 也可临时开启",
     "scanlines        常驻 CRT 扫描线",
     "noise            电视噪点",
     "scanbeam         缓慢下移的扫光带",
@@ -23,6 +24,7 @@
     "customCursor     自定义光标:青色十字准星,悬停可点击元素变品红锁定框(关闭则回退系统光标)",
     "contextMenu      自定义右键菜单:导航/复制/外链的控制面板(关闭则回退浏览器原生菜单)"
   ],
+  "debug": false,
   "effects": {
     "scanlines": true,
     "noise": true,

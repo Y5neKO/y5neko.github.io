@@ -33,6 +33,7 @@ const FX = {
 const GLYPHS = '█▓▒░#$%&@*+=?<>/\\|~^!¥§アイウエオカキクケコ0123456789';
 const busyNodes = new WeakSet();
 const gfxApi = {}; // glitchFx 暴露的手动触发接口
+let DEBUG = false; // 调试模式:config.json 顶层 "debug": true 或 URL 带 ?debug 开启
 
 function randGlyph() {
   return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
@@ -74,6 +75,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   .then((r) => (r.ok ? r.json() : null))
   .catch(() => null)
   .then((cfg) => {
+    DEBUG = !!(cfg && cfg.debug) || new URLSearchParams(location.search).has('debug');
     const user = cfg && cfg.effects;
     if (user) {
       Object.keys(FX).forEach((k) => {
@@ -829,12 +831,19 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   ctx.putImageData(img, 0, 0);
   noise.style.backgroundImage = 'url(' + c.toDataURL() + ')';
 
-  // 随机故障爆发:两种变体随机交替
-  //   变体1 glitching:RGB 色散 + 撕裂条带 + 抖动(520ms)
-  //   变体2 glitching-2:垂直失同步 + 雪花涌动 + 去色过曝 + 同步条(680ms)
-  //   变体3 glitching-3:数据块崩坏,随机矩形块反相色偏错位(620ms)
-  function burst() {
-    const variant = Math.floor(Math.random() * 3);
+  // 数据损坏色块的随机取色:全光谱高饱和,偶尔给纯白/近黑
+  function glitchColor() {
+    const r = Math.random();
+    if (r < 0.06) return '#eef6ff';
+    if (r < 0.12) return '#0a0c12';
+    return 'hsl(' + Math.floor(Math.random() * 360) + ', 96%, ' + Math.floor(46 + Math.random() * 18) + '%)';
+  }
+
+  // 随机故障爆发:三种变体随机交替(拆成 runVariant 供调试面板单独触发)
+  //   变体0 glitching:RGB 色散 + 撕裂条带 + 抖动(520ms)
+  //   变体1 glitching-2:垂直失同步 + 雪花涌动 + 去色过曝 + 同步条(680ms)
+  //   变体2 glitching-3:数据块崩坏,实心纯色损坏块(300ms)
+  function runVariant(variant) {
     if (variant === 0) {
       bands.forEach((b) => {
         b.style.top = Math.random() * 100 + '%';
@@ -853,8 +862,22 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
         b.style.display = '';
         b.style.left = Math.random() * 84 + '%';
         b.style.top = Math.random() * 86 + '%';
-        b.style.width = 36 + Math.random() * 120 + 'px';
-        b.style.height = 14 + Math.random() * 46 + 'px';
+        b.style.width = 16 + Math.random() * 90 + 'px';
+        b.style.height = 6 + Math.random() * 28 + 'px';
+        // 实心纯色块;约一半横向硬边分成 2~3 段纯色,像一行错乱的字节
+        if (Math.random() < 0.5) {
+          b.style.background = glitchColor();
+        } else {
+          const cuts = [0, ...Array.from(
+            { length: 1 + Math.floor(Math.random() * 2) },
+            () => 15 + Math.random() * 70
+          ).sort((m, n) => m - n), 100];
+          const stops = [];
+          for (let s = 0; s < cuts.length - 1; s++) {
+            stops.push(glitchColor() + ' ' + cuts[s] + '% ' + cuts[s + 1] + '%');
+          }
+          b.style.background = 'linear-gradient(90deg, ' + stops.join(', ') + ')';
+        }
         b.style.setProperty('--bx', (Math.random() * 18 - 9).toFixed(1) + 'px');
       });
       root.classList.add('glitching-3');
@@ -862,6 +885,12 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       // 一部分崩坏块不是噪声,而是"露出"屏幕后面的她
       if (gfxApi.ghost && Math.random() < 0.55) gfxApi.ghost(1);
     }
+  }
+
+  gfxApi.burst = runVariant; // 调试面板手动触发单个变体
+
+  function burst() {
+    runVariant(Math.floor(Math.random() * 3));
     schedule();
   }
 
@@ -894,8 +923,9 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 // ---------- 9.5 数据块里的"她":人影碎片闪现 ----------
 // 宏块崩坏时,部分损坏块不再是反相噪声,而是"露出"屏幕后面的另一路画面——
 // 所有碎片从同一张虚拟贴图上对位采样,拼得出人影的局部,像有人一直站在信号背后。
-// 平时只闪半秒残影;低频触发"凝视":眼睛对齐视口三分点、碎片聚拢、全屏压暗,
+// 平时只闪半秒残影;低频触发"凝视":眼睛对齐视口三分点、碎片更密、停留更久,
 // syslog 同步冒出目标告警;切走标签页又切回来,也会被她"注意到"。
+// 只出碎片不动全屏,避免整页亮度跳变。
 (function ghostGlimpse() {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -913,6 +943,9 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 
   let active = false;
   let clearTimer = 0;
+  // 三个触发源(崩坏搭车/凝视自调度/切回页面)共用的冷却:
+  // active 只防同时叠加,防不了"前脚刚走后脚就来"的连续闪现
+  let lastAt = -Infinity;
 
   const GAZE_LOGS = [
     'WARN cam[0]: unregistered entity in frame',
@@ -934,13 +967,16 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-  // strength 1 = 惊鸿一瞥(碎片少、闪得快) / 2 = 凝视(碎片密、停留久、压暗全屏)
-  function show(strength) {
+  // strength 1 = 惊鸿一瞥(碎片少、闪得快) / 2 = 凝视(碎片密、停留久、必现眼部条带)
+  // force = 跳过冷却(调试面板手动触发用)
+  function show(strength, force) {
     if (!FX.ghostGlimpse || active || document.hidden) return;
+    const gaze = strength >= 2;
+    // 冷却:任意两次出现至少隔 10s;凝视更醒目,距上次任意出现至少 25s
+    if (!force && Date.now() - lastAt < (gaze ? 25000 : 10000)) return;
     const pool = GHOSTS.filter((g) => g.ready);
     if (!pool.length) return;
     const ghost = pool[Math.floor(Math.random() * pool.length)];
-    const gaze = strength >= 2;
     const W = window.innerWidth;
     const H = window.innerHeight;
 
@@ -1004,6 +1040,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     layer.replaceChildren(frag);
 
     active = true;
+    lastAt = Date.now();
     root.classList.add(gaze ? 'ghosting-gaze' : 'ghosting');
     if (gaze) logWarn(GAZE_LOGS[Math.floor(Math.random() * GAZE_LOGS.length)]);
     clearTimeout(clearTimer);
@@ -1060,7 +1097,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       acceptNode(node) {
         const parent = node.parentElement;
         if (!parent || SKIP_TAGS.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
-        if (parent.closest('#glitch-fx')) return NodeFilter.FILTER_REJECT;
+        if (parent.closest('#glitch-fx, #fx-debug')) return NodeFilter.FILTER_REJECT;
         if (node.nodeValue.trim().length < 4) return NodeFilter.FILTER_REJECT;
         // 跳过隐藏元素(如未触发的彩蛋弹窗)
         if (parent.getClientRects().length === 0) return NodeFilter.FILTER_REJECT;
@@ -1489,7 +1526,54 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   });
 })();
 
-// ---------- 16. 控制台招呼(程序员的仪式感) ----------
+// ---------- 16. 调试面板 ----------
+// config.json 顶层 "debug": true 或 URL 带 ?debug 时启用;
+// 右下角小控制台,手动触发各特效,便于调试观察。
+// 按钮走 gfxApi 的手动接口,对应特效被 config 关闭时按钮无效果。
+(function fxDebugPanel() {
+  fxReady.then(() => {
+    if (!DEBUG) return;
+
+    const ACTIONS = [
+      ['色散撕裂', () => gfxApi.burst && gfxApi.burst(0)],
+      ['失同步', () => gfxApi.burst && gfxApi.burst(1)],
+      ['数据噪块', () => gfxApi.burst && gfxApi.burst(2)],
+      ['微故障', () => gfxApi.flash && gfxApi.flash()],
+      ['残影', () => gfxApi.ghost && gfxApi.ghost(1, true)],
+      ['凝视', () => gfxApi.ghost && gfxApi.ghost(2, true)],
+      ['切台 +1', () => {
+        const pages = document.querySelectorAll('.hero, .section');
+        if (!gfxApi.channelJump || !pages.length) return;
+        const y = window.scrollY;
+        let cur = 0;
+        let best = Infinity;
+        pages.forEach((p, i) => {
+          const d = Math.abs(p.offsetTop - y);
+          if (d < best) { best = d; cur = i; }
+        });
+        gfxApi.channelJump(pages[(cur + 1) % pages.length]);
+      }],
+    ];
+
+    const panel = document.createElement('div');
+    panel.id = 'fx-debug';
+    const head = document.createElement('div');
+    head.className = 'fxdbg-head';
+    head.textContent = 'FX DEBUG';
+    panel.appendChild(head);
+    ACTIONS.forEach(([label, fn]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'fxdbg-btn';
+      b.textContent = label;
+      b.addEventListener('click', fn);
+      panel.appendChild(b);
+    });
+    document.body.appendChild(panel);
+  });
+})();
+
+// ---------- 17. 控制台招呼(程序员的仪式感) ----------
 console.log(
   '%cY5NEKO TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
   'color:#050508;background:#00f0ff;font-size:14px;font-weight:bold;padding:2px 8px;',
