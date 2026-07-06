@@ -15,7 +15,7 @@ const FX = {
   glitchTitle: true,      // 标题/logo 双通道色散错位
   dust: true,             // 漂浮尘埃粒子
   syslog: true,           // 左下系统日志流
-  radar: true,            // 右下雷达扫描
+  recBadge: true,         // 左上角 REC 录制标识(故障爆发时"失去信号")
   avatarGlitch: true,     // 头像故障切片
   titleDecode: true,      // 章节标题乱码解码入场
   btnScramble: true,      // 按钮 hover 文字乱码
@@ -190,14 +190,14 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   }
 })();
 
-// ---------- 1. 背景:尘埃粒子 / 系统日志流 / 雷达扫描 ----------
+// ---------- 1. 背景:尘埃粒子 / 系统日志流 / REC 录制标识 ----------
 (function monitorBg() {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   fxReady.then(() => {
     if (FX.dust) initDust();
     if (FX.syslog && !reduced) logLine();
-    if (FX.radar && !reduced) blip();
+    if (FX.recBadge) initRec();
   });
 
   // -- 漂浮尘埃(灰烬) --
@@ -283,19 +283,54 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     setTimeout(logLine, 900 + Math.random() * 1100);
   }
 
-  // -- 雷达目标点 --
-  const radar = document.getElementById('radar');
+  // -- 摄像机 REC 录制标识:时间码走秒;故障爆发时"失去信号",结束后恢复 --
+  const rec = document.getElementById('rec-osd');
+  const recLabel = rec.querySelector('.rec-label');
+  const recTime = rec.querySelector('.rec-time');
+  const bootAt = Date.now();
+  let recLost = false;
+  let recLostTimer = 0;
 
-  function blip() {
-    const dot = document.createElement('span');
-    dot.className = 'radar-blip';
-    const ang = Math.random() * Math.PI * 2;
-    const dist = 8 + Math.random() * 46;
-    dot.style.left = 60 + Math.cos(ang) * dist + 'px';
-    dot.style.top = 60 + Math.sin(ang) * dist + 'px';
-    radar.appendChild(dot);
-    setTimeout(() => dot.remove(), 3000);
-    setTimeout(blip, 1800 + Math.random() * 3200);
+  function recClock() {
+    const s = Math.floor((Date.now() - bootAt) / 1000);
+    return two(Math.floor(s / 3600)) + ':' + two(Math.floor(s / 60) % 60) + ':' + two(s % 60);
+  }
+
+  function recTick() {
+    if (!recLost) recTime.textContent = recClock();
+    setTimeout(recTick, 1000);
+  }
+
+  function recSetLost(on) {
+    if (on === recLost) return;
+    recLost = on;
+    rec.classList.toggle('rec-lost', on);
+    clearInterval(recLostTimer);
+    if (on) {
+      // 两种失联形态随机:信号丢失标语 / 标识部分乱码抖动
+      if (Math.random() < 0.5) {
+        recLabel.textContent = 'NO SIGNAL';
+        recTime.textContent = '--:--:--';
+      } else {
+        recLostTimer = setInterval(() => {
+          recLabel.textContent = scrambled('REC', 0, 3);
+          const t = recClock();
+          recTime.textContent = scrambled(t, Math.floor(Math.random() * 5), t.length);
+        }, 90);
+      }
+    } else {
+      recLabel.textContent = 'REC';
+      recTime.textContent = recClock();
+    }
+  }
+
+  function initRec() {
+    recTick();
+    if (reduced) return; // 减少动效时故障爆发不会触发,只保留走秒
+    // 所有故障变体都通过 <html> 类驱动,侦听类变化即可联动
+    const GLITCH_RE = /(?:^|\s)(?:glitching(?:-\d)?|ghosting(?:-gaze)?)(?:\s|$)/;
+    new MutationObserver(() => recSetLost(GLITCH_RE.test(document.documentElement.className)))
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   }
 })();
 

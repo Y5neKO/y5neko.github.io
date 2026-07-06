@@ -194,47 +194,56 @@ body::after {
 
 #syslog .syslog-warn { color: rgba(255, 42, 109, 0.75); }
 
-/* 雷达扫描 */
-#radar {
+/* 摄像机 REC 录制标识:左上角(顶栏下方)红点 + 时间码,取景器式布局;
+   故障爆发期间 JS 挂 .rec-lost,变为失联/乱码,结束后恢复 */
+#rec-osd {
   position: fixed;
-  right: 42px;
-  bottom: 84px;
-  z-index: -1;
-  width: 120px;
-  height: 120px;
-  border: 1px solid rgba(0, 240, 255, 0.25);
-  border-radius: 50%;
-  opacity: 0.5;
+  left: 20px;
+  top: 72px;
+  /* 取景器 OSD 浮在"画面"最上层:高于切台雪花遮罩(998),翻页时不被盖住;
+     仍低于其后的 #glitch-fx(999),扫描线/噪点照常罩在字上 */
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  /* 取景器比例:REC 约占画面高 3%,跟随视口缩放 */
+  font-size: clamp(20px, 3.2vh, 36px);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgba(230, 238, 245, 0.82);
+  opacity: 0.85;
   pointer-events: none;
-  background:
-    radial-gradient(circle, transparent 0 39px, rgba(0, 240, 255, 0.12) 39px 40px, transparent 40px 79px, rgba(0, 240, 255, 0.12) 79px 80px, transparent 80px),
-    linear-gradient(rgba(0, 240, 255, 0.12), rgba(0, 240, 255, 0.12)) 50% 50% / 1px 100% no-repeat,
-    linear-gradient(rgba(0, 240, 255, 0.12), rgba(0, 240, 255, 0.12)) 50% 50% / 100% 1px no-repeat;
 }
 
-.radar-sweep {
-  position: absolute;
-  inset: 0;
+.rec-dot {
+  width: 0.72em;
+  height: 0.72em;
   border-radius: 50%;
-  background: conic-gradient(transparent, transparent 290deg, rgba(0, 240, 255, 0.28) 360deg);
-  animation: radar-rot 5s linear infinite;
+  background: #ff2a3c;
+  box-shadow: 0 0 0.5em rgba(255, 42, 60, 0.8);
+  animation: rec-blink 1.3s steps(1) infinite;
 }
 
-@keyframes radar-rot { to { transform: rotate(360deg); } }
+@keyframes rec-blink { 50% { opacity: 0.12; } }
 
-.radar-blip {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  margin: -2px 0 0 -2px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: blip-fade 3s ease-out forwards;
+.rec-time { color: var(--text-dim); letter-spacing: 1px; }
+
+/* 失联状态:红点熄灭,文字带品红/青色散 */
+#rec-osd.rec-lost {
+  color: rgba(255, 42, 109, 0.9);
+  text-shadow: 1px 0 0 rgba(0, 240, 255, 0.5), -1px 0 0 rgba(255, 42, 109, 0.45);
 }
 
-@keyframes blip-fade {
-  0%   { opacity: 1; box-shadow: 0 0 8px rgba(0, 240, 255, 0.8); }
-  100% { opacity: 0; box-shadow: none; }
+#rec-osd.rec-lost .rec-dot {
+  background: #61707f;
+  box-shadow: none;
+  animation: none;
+}
+
+#rec-osd.rec-lost .rec-time { color: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-dot { animation: none; }
 }
 
 /* ---------- 导航:贴顶工业横条 ---------- */
@@ -1656,7 +1665,7 @@ html.fx-off-noise .gfx-noise,
 html.fx-off-scanbeam .gfx-scanbeam,
 html.fx-off-dust #dust-canvas,
 html.fx-off-syslog #syslog,
-html.fx-off-radar #radar { display: none; }
+html.fx-off-rec-badge #rec-osd { display: none; }
 
 html.fx-off-glitch-title .glitch::before,
 html.fx-off-glitch-title .glitch::after { content: none; }
@@ -1706,8 +1715,10 @@ html.fx-off-crt-modal .easter-inner {
   html { scroll-snap-type: none; }
 
   body::after,
-  #syslog,
-  #radar { display: none; }
+  #syslog { display: none; }
+
+  /* REC 标识保留但收小,避免压到内容 */
+  #rec-osd { left: 14px; top: 64px; font-size: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
