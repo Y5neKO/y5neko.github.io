@@ -431,6 +431,56 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     setTimeout(logLine, delay);
   }
 
+  // -- 故障爆发联动:全屏故障的瞬间,日志侧同步炸出一条 ERR 报告 --
+  // 三种变体各有对应的报错口吻;整行先以乱码涌出、再快速稳定,
+  // 像日志流本身也被这次故障波及。由 glitchFx 的 runVariant 调用。
+  const GLITCH_LOGS = [
+    [ // 变体0 色散撕裂
+      'ERR video: chroma channels desynced, r/b drift 4.2px',
+      'ERR feed: scanline tearing, sync word not found',
+      'ERR video: color burst phase inverted (source: in-band)',
+      'ERR feed: interference matches no known emitter',
+      'ERR video: raster torn, recovering by guesswork',
+    ],
+    [ // 变体1 垂直失同步
+      'ERR video: vsync lost, frame rolling',
+      'ERR feed: signal integrity 41% and falling',
+      'ERR video: field order flipped mid-frame',
+      'ERR feed: carrier drop, switching to backup (none found)',
+      'ERR video: sync restored by unknown handshake',
+    ],
+    [ // 变体2 数据块崩坏(与"她"的闪现同源)
+      'ERR mem: framebuffer pages corrupted @ 0x7f3a:0210',
+      'ERR codec: macroblock checksum mismatch x17',
+      'ERR mem: corrupted blocks decode to a valid image',
+      'ERR codec: replaced blocks are not noise',
+      'ERR mem: write to sealed page, origin: record #0001',
+    ],
+  ];
+  function logGlitch(variant) {
+    if (!FX.syslog || reduced || !syslog) return;
+    const pool = GLITCH_LOGS[variant] || GLITCH_LOGS[0];
+    const now = new Date();
+    const text = two(now.getHours()) + ':' + two(now.getMinutes()) + ':' + two(now.getSeconds())
+      + ' ' + pool[Math.floor(Math.random() * pool.length)];
+    const div = document.createElement('div');
+    div.className = 'syslog-err';
+    div.textContent = scrambled(text, 0, text.length);
+    syslog.appendChild(div);
+    while (syslog.childElementCount > 22) syslog.firstElementChild.remove();
+    let resolved = 0;
+    const timer = setInterval(() => {
+      resolved += 4;
+      if (resolved >= text.length) {
+        clearInterval(timer);
+        div.textContent = text;
+      } else {
+        div.textContent = scrambled(text, resolved, text.length);
+      }
+    }, 40);
+  }
+  gfxApi.logGlitch = logGlitch;
+
   // -- 摄像机 REC 录制标识:时间码走秒;故障爆发时"失去信号",结束后恢复 --
   const rec = document.getElementById('rec-osd');
   const recLabel = rec.querySelector('.rec-label');
@@ -971,6 +1021,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   //   变体1 glitching-2:垂直失同步 + 雪花涌动 + 去色过曝 + 同步条(680ms)
   //   变体2 glitching-3:数据块崩坏,实心纯色损坏块(300ms)
   function runVariant(variant) {
+    if (gfxApi.logGlitch) gfxApi.logGlitch(variant); // 日志侧同步报错(内部限流)
     if (variant === 0) {
       bands.forEach((b) => {
         b.style.top = Math.random() * 100 + '%';
