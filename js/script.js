@@ -36,6 +36,7 @@ const FX = {
   crossFeed: true,        // 串台:切台小概率误入死频道 CH-?? 再被抢回(依赖 monitorCut)
   deadPixels: true,       // 坏点:每次会话随机 2~3 个常亮像素,压在所有画面之上
   copyTrace: true,        // 复制被截获:复制文字时日志播报剪贴板被镜像
+  glitchAudio: false,     // 故障音效:爆发/切台电流杂音 + 凝视低鸣(唯一默认关闭项)
 };
 
 // 特效间共享:乱码字符集 / 正在乱码中的文本节点(防互相踩)
@@ -2158,5 +2159,119 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
         .replace('{n}', bytes || '?');
       setTimeout(() => gfxApi.sysLine && gfxApi.sysLine(text), 350);
     });
+  });
+})();
+
+// ---------- 23. 故障音效:电流杂音(默认关闭) ----------
+// WebAudio 现场合成,无音频文件;浏览器要求用户手势后才允许出声,
+// 首次点击/按键时解锁 AudioContext。触发全靠侦听 <html> 类与
+// #channel-cut 的变化,与视觉模块解耦:
+//   glitching / glitching-2 / glitching-3 → 对应质感的电流杂音
+//   ghosting / ghosting-gaze             → 轻嘶声 / 低频嗡鸣(她贴近时)
+//   #channel-cut.on                      → 切台雪花噪声
+(function glitchAudio() {
+  let ctx = null;
+  let master = null;
+  let noiseBuf = null;
+
+  function ensureCtx() {
+    if (ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    ctx = new AC();
+    master = ctx.createGain();
+    master.gain.value = 0.5; // 总闸:所有杂音都刻意压得很低
+    master.connect(ctx.destination);
+    // 2 秒白噪声,所有杂音共用,播放时随机偏移取段
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+
+  // 一段带通电流杂音:时长 dur 秒,中心频率 freq,峰值音量 vol
+  function hiss(dur, freq, q, vol) {
+    if (!ctx || ctx.state !== 'running' || document.hidden) return;
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = noiseBuf;
+    src.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = freq;
+    bp.Q.value = q;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(master);
+    src.start(t, Math.random() * 1.5);
+    src.stop(t + dur + 0.05);
+  }
+
+  // 凝视低鸣:两只轻微失谐的正弦叠出拍频,像贴得很近的变压器
+  function drone(dur) {
+    if (!ctx || ctx.state !== 'running' || document.hidden) return;
+    const t = ctx.currentTime;
+    [55, 57.3].forEach((f) => {
+      const o = ctx.createOscillator();
+      o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.05, t + 0.5);
+      g.gain.linearRampToValueAtTime(0, t + dur);
+      o.connect(g);
+      g.connect(master);
+      o.start(t);
+      o.stop(t + dur + 0.1);
+    });
+  }
+
+  const SOUNDS = {
+    'glitching': () => hiss(0.5, 2600, 0.9, 0.1),                    // 色散撕裂:中高频嘶啦
+    'glitching-2': () => { hiss(0.65, 900, 0.8, 0.09); hiss(0.65, 4200, 1.5, 0.05); }, // 失同步:低鸣+高嘶
+    'glitching-3': () => { hiss(0.09, 3200, 2, 0.12); setTimeout(() => hiss(0.07, 5000, 2, 0.1), 110); }, // 数据块:两下短促的数字咔哒
+    'ghosting': () => hiss(0.15, 6000, 2, 0.04),                     // 残影:几乎听不见的嘶
+    'ghosting-gaze': () => drone(2.4),                               // 凝视:低频嗡鸣
+  };
+
+  fxReady.then(() => {
+    if (!FX.glitchAudio) return;
+
+    // 首次手势解锁;解锁成功后卸掉监听
+    function unlock() {
+      ensureCtx();
+      if (!ctx) return;
+      ctx.resume().then(() => {
+        if (ctx.state === 'running') {
+          window.removeEventListener('pointerdown', unlock);
+          window.removeEventListener('keydown', unlock);
+        }
+      });
+    }
+    window.addEventListener('pointerdown', unlock, { passive: true });
+    window.addEventListener('keydown', unlock);
+
+    // html 类的上升沿 → 对应杂音
+    let prev = new Set();
+    new MutationObserver(() => {
+      const cur = new Set(document.documentElement.className.split(/\s+/));
+      Object.keys(SOUNDS).forEach((k) => {
+        if (cur.has(k) && !prev.has(k)) SOUNDS[k]();
+      });
+      prev = cur;
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    // 切台雪花上升沿 → 换台噪声
+    const cut = document.getElementById('channel-cut');
+    if (cut) {
+      let cutOn = false;
+      new MutationObserver(() => {
+        const on = cut.classList.contains('on');
+        if (on && !cutOn) hiss(0.22, 1800, 0.5, 0.11);
+        cutOn = on;
+      }).observe(cut, { attributes: true, attributeFilter: ['class'] });
+    }
   });
 })();

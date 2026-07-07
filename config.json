@@ -31,7 +31,8 @@
     "nightShift       深夜档:本地时间 0~5 点故障爆发与凝视更密,日志混入夜班专属线",
     "crossFeed        串台:翻页切台小概率误入不存在的死频道 CH-??(黑屏噪点检验卡,深处偶有人影)再被抢回(依赖 monitorCut)",
     "deadPixels       坏点:每次会话随机 2~3 个常亮像素(必有一个品红),压在所有画面之上",
-    "copyTrace        复制被截获:复制页面文字时日志播报剪贴板被镜像"
+    "copyTrace        复制被截获:复制页面文字时日志播报剪贴板被镜像",
+    "glitchAudio      故障音效:爆发/切台的电流杂音 + 凝视低鸣,WebAudio 合成;唯一默认关闭项,访客首次点击页面后才会出声,音量很低"
   ],
   "debug": false,
   "effects": {
@@ -64,6 +65,7 @@
     "nightShift": true,
     "crossFeed": true,
     "deadPixels": true,
-    "copyTrace": true
+    "copyTrace": true,
+    "glitchAudio": false
   }
 }
