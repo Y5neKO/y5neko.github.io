@@ -22,7 +22,16 @@
     "snapBurst        整页翻页落定时触发微故障",
     "monitorCut       翻页监控切台:雪花噪点硬切换 + OSD 频道标签(关闭则回退平滑滚动)",
     "customCursor     自定义光标:青色十字准星,悬停可点击元素变品红锁定框(关闭则回退系统光标)",
-    "contextMenu      自定义右键菜单:导航/复制/外链的控制面板(关闭则回退浏览器原生菜单)"
+    "contextMenu      自定义右键菜单:导航/复制/外链的控制面板(关闭则回退浏览器原生菜单)",
+    "termGhost        终端入侵:页面久置时'她'在终端里逐字打出一句话又删掉,任何按键点击立即中断",
+    "tabGhost         标签页失守:切走后标题渐渐乱码、favicon 亮起红色录制点,切回瞬间复原",
+    "consoleEgg       控制台彩蛋:DevTools 里的 PRTS 接管横幅(关闭则回退普通构建信息一行)",
+    "visitMemory      她记得你:localStorage 记访问次数,回访会被日志点名,来得越多凝视越大越频繁,第 5 次起报出具体次数;记忆 30 分钟不来访即清零",
+    "recRewind        REC 时间码偶尔倒跳 1~3 秒再恢复,偶发日志 discontinuity(依赖 recBadge 显示)",
+    "nightShift       深夜档:本地时间 0~5 点故障爆发与凝视更密,日志混入夜班专属线",
+    "crossFeed        串台:翻页切台小概率误入不存在的死频道 CH-??(黑屏噪点检验卡,深处偶有人影)再被抢回(依赖 monitorCut)",
+    "deadPixels       坏点:每次会话随机 2~3 个常亮像素(必有一个品红),压在所有画面之上",
+    "copyTrace        复制被截获:复制页面文字时日志播报剪贴板被镜像"
   ],
   "debug": false,
   "effects": {
@@ -46,6 +55,15 @@
     "snapBurst": true,
     "monitorCut": true,
     "customCursor": true,
-    "contextMenu": true
+    "contextMenu": true,
+    "termGhost": true,
+    "tabGhost": true,
+    "consoleEgg": true,
+    "visitMemory": true,
+    "recRewind": true,
+    "nightShift": true,
+    "crossFeed": true,
+    "deadPixels": true,
+    "copyTrace": true
   }
 }

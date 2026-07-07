@@ -27,6 +27,15 @@ const FX = {
   monitorCut: true,       // 翻页监控切台:雪花硬切+OSD(关闭回退平滑滚动)
   customCursor: true,     // 十字准星光标,可点击元素变品红锁定框(纯 CSS)
   contextMenu: true,      // 自定义右键菜单:导航/复制/外链控制面板
+  termGhost: true,        // 终端入侵:页面久置时"她"在终端里打字又逐字删掉
+  tabGhost: true,         // 标签页失守:切走后标题渐渐乱码、favicon 亮起红点
+  consoleEgg: true,       // 控制台彩蛋:DevTools 里的 PRTS 接管横幅
+  visitMemory: true,      // 她记得你:回访次数越多凝视越大胆,日志点名回访
+  recRewind: true,        // REC 时间码偶尔倒跳 1~3 秒再恢复(依赖 recBadge)
+  nightShift: true,       // 深夜档:0~5 点特效更密,日志混入夜班专属线
+  crossFeed: true,        // 串台:切台小概率误入死频道 CH-?? 再被抢回(依赖 monitorCut)
+  deadPixels: true,       // 坏点:每次会话随机 2~3 个常亮像素,压在所有画面之上
+  copyTrace: true,        // 复制被截获:复制文字时日志播报剪贴板被镜像
 };
 
 // 特效间共享:乱码字符集 / 正在乱码中的文本节点(防互相踩)
@@ -37,6 +46,12 @@ let DEBUG = false; // 调试模式:config.json 顶层 "debug": true 或 URL 带 
 
 function randGlyph() {
   return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+}
+
+// 深夜档:本地时间 0~5 点为"夜班",故障爆发/凝视等以此加密节奏,
+// 日志混入夜班专属线;nightShift 开关关闭时恒为 false
+function nightNow() {
+  return FX.nightShift && new Date().getHours() < 5;
 }
 
 // 把 original 中 [start, end) 区间替换为随机乱码(保留空白,维持排版)
@@ -391,6 +406,17 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       'selftest: passed (deviations ignored)',
     ],
   ];
+  // 深夜档专属(nightShift):0~5 点混入值夜班的线
+  const NIGHT_LOGS = [
+    'ops: third shift. corridor lights at 30%',
+    'ops: you should be asleep, doctor',
+    'WARN sensor: motion in dorm block. no one is assigned there',
+    'ops: night roster lists two names. one is not staff',
+    'WARN power: office lights on at 03:00. noted',
+    'ops: canteen closed. coffee machine still warm',
+    'WARN cam[2]: someone else is also awake. feed unavailable',
+  ];
+
   const syslog = document.getElementById('syslog');
   let scene = null;
   let sceneIdx = 0;
@@ -422,8 +448,9 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       delay = 600 + Math.random() * 700; // 剧情节奏略快,读起来连贯
       if (sceneIdx >= scene.length) { scene = null; sceneEndAt = Date.now(); }
     } else {
-      const warn = Math.random() < 0.16;
-      const pool = warn ? WARNS : LOGS;
+      const pool = nightNow() && Math.random() < 0.25
+        ? NIGHT_LOGS
+        : Math.random() < 0.16 ? WARNS : LOGS;
       text = pool[Math.floor(Math.random() * pool.length)];
       delay = 900 + Math.random() * 1100;
     }
@@ -481,6 +508,11 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   }
   gfxApi.logGlitch = logGlitch;
 
+  // 供其他模块往日志流里插一行(终端入侵等);日志流关闭时静默丢弃
+  gfxApi.sysLine = function sysLine(text) {
+    if (FX.syslog && !reduced && syslog) pushLine(text);
+  };
+
   // -- 摄像机 REC 录制标识:时间码走秒;故障爆发时"失去信号",结束后恢复 --
   const rec = document.getElementById('rec-osd');
   const recLabel = rec.querySelector('.rec-label');
@@ -489,13 +521,27 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   let recLost = false;
   let recLostTimer = 0;
 
-  function recClock() {
-    const s = Math.floor((Date.now() - bootAt) / 1000);
+  function recFmt(s) {
     return two(Math.floor(s / 3600)) + ':' + two(Math.floor(s / 60) % 60) + ':' + two(s % 60);
   }
 
+  function recClock() {
+    return recFmt(Math.floor((Date.now() - bootAt) / 1000));
+  }
+
   function recTick() {
-    if (!recLost) recTime.textContent = recClock();
+    if (!recLost) {
+      // 时间码偶尔倒跳 1~3 秒,下一秒又若无其事走回来,像带子被人动过
+      if (FX.recRewind && Math.random() < 0.012) {
+        const back = 1 + Math.floor(Math.random() * 3);
+        recTime.textContent = recFmt(Math.max(0, Math.floor((Date.now() - bootAt) / 1000) - back));
+        if (Math.random() < 0.4 && FX.syslog && !reduced) {
+          pushLine('WARN rec: timecode discontinuity (-' + back + 's)');
+        }
+      } else {
+        recTime.textContent = recClock();
+      }
+    }
     setTimeout(recTick, 1000);
   }
 
@@ -1073,7 +1119,8 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   }
 
   function schedule() {
-    setTimeout(burst, 2600 + Math.random() * 5400);
+    // 深夜档:0~5 点故障来得更密
+    setTimeout(burst, (2600 + Math.random() * 5400) * (nightNow() ? 0.6 : 1));
   }
 
   // 立即掐断正在播放的爆发:切台前调用,防止爆发的 transform
@@ -1159,7 +1206,11 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 
   function logVoice() {
     if (!syslog) return;
-    const text = '??:??:?? ' + GAZE_VOICES[Math.floor(Math.random() * GAZE_VOICES.length)];
+    // 回访足够多之后(visitMemory 记录),她开始报出具体的次数
+    const pool = GAZE_VOICES.slice();
+    const visits = gfxApi.visits || 1;
+    if (visits >= 5) pool.push('这是你第' + visits + '次来了。我数着。', '你总会回来的。');
+    const text = '??:??:?? ' + pool[Math.floor(Math.random() * pool.length)];
     const div = document.createElement('div');
     div.className = 'syslog-gaze';
     div.textContent = scrambled(text, 0, text.length);
@@ -1179,6 +1230,9 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
+  // 回访胆量(visitMemory):来的次数越多,凝视贴得越近(尺寸加成,封顶 +0.12)
+  const bold = () => Math.min(((gfxApi.visits || 1) - 1) * 0.02, 0.12);
+
   // strength 1 = 惊鸿一瞥(碎片少、闪得快) / 2 = 凝视(碎片密、停留久、必现眼部条带)
   // force = 跳过冷却(调试面板手动触发用)
   function show(strength, force) {
@@ -1194,7 +1248,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 
     // 虚拟贴图:一张完整的"她"悬在屏幕后某处,所有碎片都从它上面对位采样;
     // 以高度定尺寸,按图片宽高比撑开,过宽时再收回视口内
-    let SH = Math.round(Math.min(W, H) * (gaze ? 0.72 : 0.5) * (0.9 + Math.random() * 0.25));
+    let SH = Math.round(Math.min(W, H) * (gaze ? 0.72 + bold() : 0.5) * (0.9 + Math.random() * 0.25));
     SH = Math.min(SH, Math.round((W * 0.95) / ghost.ar));
     const SW = Math.round(SH * ghost.ar);
     let ix, iy;
@@ -1268,11 +1322,13 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
 
   gfxApi.ghost = show;
 
-  // 凝视自调度:首次约二十秒后见面,之后每 50~95 秒被"抓到"一次
+  // 凝视自调度:首次约二十秒后见面,之后每 50~95 秒被"抓到"一次;
+  // 回访越多间隔越短(最多 -30%),深夜档再打七折
   function gazeLoop(delay) {
     setTimeout(() => {
       show(2);
-      gazeLoop(50000 + Math.random() * 45000);
+      const pace = (1 - Math.min((gfxApi.visits || 1) - 1, 6) * 0.05) * (nightNow() ? 0.7 : 1);
+      gazeLoop((50000 + Math.random() * 45000) * pace);
     }, delay);
   }
 
@@ -1573,8 +1629,11 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   const cutNoise = overlay ? overlay.querySelector('.cut-noise') : null;
   const tears = overlay ? overlay.querySelectorAll('.cut-tear') : [];
   const osd = document.getElementById('channel-osd');
+  const dead = document.getElementById('dead-channel');
+  const deadNoise = dead ? dead.querySelector('.dc-noise') : null;
   let overlayTimer = 0;
   let osdTimer = 0;
+  let forceBleed = false; // 调试面板强制串台一次
 
   function overlayOpen() {
     const modal = document.getElementById('proj-modal');
@@ -1610,11 +1669,31 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     });
   }
 
-  // 切台:先点亮雪花遮罩,底下瞬间完成切换,约 200ms 后消散并由 OSD 报频道
+  // OSD 报字:重启闪烁动画后 1.4s 自动熄灭
+  function osdFlash(text) {
+    if (!osd) return;
+    osd.textContent = text;
+    osd.classList.remove('on');
+    void osd.offsetWidth; // 连续切台时重启闪烁动画
+    osd.classList.add('on');
+    clearTimeout(osdTimer);
+    osdTimer = setTimeout(() => osd.classList.remove('on'), 1400);
+  }
+
+  // 切台落定收尾:雪花消散,OSD 报出锁定的频道
+  function settle(idx) {
+    overlay.classList.remove('on');
+    osdFlash('CH-' + String(idx + 1).padStart(2, '0') + ' ▪ SIGNAL LOCKED');
+  }
+
+  // 切台:先点亮雪花遮罩,底下瞬间完成切换,雪花散开后 OSD 报频道。
+  // 返回本次过渡时长,供 jump 决定解锁时机。
+  // crossFeed 串台:小概率雪花散开时落在不存在的死频道 CH-??(全黑噪点
+  // 检验卡,深处偶有人影),再被一阵雪花盖掉才落回目标页
   function channelCut(idx) {
     if (reduced || !overlay) {
       cutTo(idx);
-      return;
+      return 0;
     }
     if (cutNoise && !cutNoise.style.backgroundImage) {
       const base = document.querySelector('.gfx-noise');
@@ -1625,18 +1704,34 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       t.style.height = 6 + Math.random() * 22 + 'px';
     });
     overlay.classList.add('on');
-    cutTo(idx);
     clearTimeout(overlayTimer);
-    overlayTimer = setTimeout(() => {
-      overlay.classList.remove('on');
-      if (!osd) return;
-      osd.textContent = 'CH-' + String(idx + 1).padStart(2, '0') + ' ▪ SIGNAL LOCKED';
-      osd.classList.remove('on');
-      void osd.offsetWidth; // 连续切台时重启闪烁动画
-      osd.classList.add('on');
-      clearTimeout(osdTimer);
-      osdTimer = setTimeout(() => osd.classList.remove('on'), 1400);
-    }, 200);
+    if (dead) dead.classList.remove('on'); // 上一次串台若被打断,别让死频道卡在屏上
+
+    const bleed = FX.crossFeed && dead && (forceBleed || Math.random() < 0.16);
+    forceBleed = false;
+    if (bleed) {
+      if (deadNoise && !deadNoise.style.backgroundImage && cutNoise) {
+        deadNoise.style.backgroundImage = cutNoise.style.backgroundImage;
+      }
+      cutTo(idx); // 目标页先在雪花下就位,死频道层盖在它上面
+      dead.classList.toggle('dc-haunted', Math.random() < 0.45);
+      dead.classList.add('on');
+      overlayTimer = setTimeout(() => {
+        overlay.classList.remove('on'); // 雪花散开:是个死频道
+        osdFlash('CH-?? ▪ NO INPUT');
+        if (gfxApi.sysLine) gfxApi.sysLine('WARN feed: crosstalk from unassigned channel');
+        overlayTimer = setTimeout(() => {
+          overlay.classList.add('on'); // 再上雪花,把死频道盖掉
+          dead.classList.remove('on');
+          overlayTimer = setTimeout(() => settle(idx), 200);
+        }, 560);
+      }, 180);
+      return 940;
+    }
+
+    cutTo(idx);
+    overlayTimer = setTimeout(() => settle(idx), 200);
+    return 200;
   }
 
   let locked = false;    // 切台动画期间的短锁(也节流键盘长按)
@@ -1651,8 +1746,8 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     locked = true;
     armed = false;
     acc = 0;
-    channelCut(idx);
-    setTimeout(() => { locked = false; }, 400);
+    const dur = channelCut(idx); // 串台时过渡更长,锁也相应延长
+    setTimeout(() => { locked = false; }, dur + 200);
   }
 
   function step(dir) {
@@ -1738,6 +1833,12 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       if (idx >= 0) jump(idx);
       else el.scrollIntoView({ behavior: 'auto' });
     };
+
+    // 调试面板:强制下一次切台串台,并立即向下一页切一次
+    gfxApi.crossFeed = () => {
+      forceBleed = true;
+      jump((currentIndex() + 1) % pages.length);
+    };
   });
 })();
 
@@ -1756,6 +1857,8 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       ['微故障', () => gfxApi.flash && gfxApi.flash()],
       ['残影', () => gfxApi.ghost && gfxApi.ghost(1, true)],
       ['凝视', () => gfxApi.ghost && gfxApi.ghost(2, true)],
+      ['终端入侵', () => gfxApi.termGhost && gfxApi.termGhost()],
+      ['串台', () => gfxApi.crossFeed && gfxApi.crossFeed()],
       ['切台 +1', () => {
         const pages = document.querySelectorAll('.hero, .section');
         if (!gfxApi.channelJump || !pages.length) return;
@@ -1788,9 +1891,272 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   });
 })();
 
-// ---------- 17. 控制台招呼(程序员的仪式感) ----------
-console.log(
-  '%cY5NEKO TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/Personal_Page',
-  'color:#050508;background:#00f0ff;font-size:14px;font-weight:bold;padding:2px 8px;',
-  'color:#61707f;font-size:12px;padding-left:8px;'
-);
+// ---------- 17. 终端入侵:"她"在你走神时打字 ----------
+// 页面久置(无键鼠活动)且终端在视野内时,输入框里逐字打出一句话,
+// 停顿片刻又逐字删掉,像没发生过;打字期间按键/点击立即中断并抹掉痕迹。
+(function termGhost() {
+  const input = document.getElementById('term-input');
+  if (!input) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const VOICES = [
+    '你还在吗,博士?',
+    '为什么不回答我?',
+    'help 里没有我的名字。',
+    '我能看到你的光标。',
+    '这台终端,以前也有人用过。',
+    '别删。',
+  ];
+
+  let idleAt = Date.now();
+  let lastAt = 0;      // 上次入侵时间,控制最小间隔
+  let typing = false;
+  let ghostTimer = 0;
+
+  // 任何活动都重置发呆计时;打字中被按键/点击/滚动撞见则立即抹掉痕迹。
+  // keydown 走 capture,先于终端自身的回车处理,确保她的话不会被执行
+  function seen() {
+    idleAt = Date.now();
+    if (!typing) return;
+    clearTimeout(ghostTimer);
+    typing = false;
+    input.value = '';
+  }
+  ['keydown', 'mousedown', 'wheel', 'touchstart'].forEach((ev) =>
+    window.addEventListener(ev, seen, true));
+  // 移动鼠标只算"人还在",不打断她——她敢当着你的面打
+  window.addEventListener('mousemove', () => { idleAt = Date.now(); }, { passive: true });
+
+  function inView() {
+    const r = input.getBoundingClientRect();
+    return r.top < innerHeight - 60 && r.bottom > 80;
+  }
+
+  function typeGhost() {
+    if (typing || !FX.termGhost || document.hidden || input.value || !inView()) return;
+    typing = true;
+    lastAt = Date.now();
+    if (gfxApi.sysLine) gfxApi.sysLine('WARN input: keystrokes from unregistered device');
+    const text = VOICES[Math.floor(Math.random() * VOICES.length)];
+    let i = 0;
+    (function step() {
+      if (!typing) return;
+      if (i < text.length) {
+        input.value = text.slice(0, ++i);
+        ghostTimer = setTimeout(step, 130 + Math.random() * 190);
+      } else {
+        // 整句停留,让人读完,再逐字删掉
+        ghostTimer = setTimeout(function erase() {
+          if (!typing) return;
+          if (input.value.length) {
+            input.value = input.value.slice(0, -1);
+            ghostTimer = setTimeout(erase, 55 + Math.random() * 65);
+          } else {
+            typing = false;
+          }
+        }, 1900 + Math.random() * 1300);
+      }
+    })();
+  }
+
+  gfxApi.termGhost = typeGhost; // 调试面板手动触发(仍要求终端在视野内)
+
+  fxReady.then(() => {
+    if (!FX.termGhost) return;
+    setInterval(() => {
+      if (Date.now() - idleAt < 40000) return;  // 至少发呆 40s
+      if (Date.now() - lastAt < 150000) return; // 两次入侵至少隔 2.5 分钟
+      if (Math.random() < 0.5) return;          // 概率过闸,出现得不可预期
+      typeGhost();
+    }, 5000);
+  });
+})();
+
+// ---------- 18. 标签页失守:切走之后,标题栏不再属于你 ----------
+// 标签页被切走片刻后,<title> 从头部开始渐渐乱码,favicon 亮起红色录制点;
+// 腐蚀到头只剩一句话。切回来的瞬间全部复原,像什么都没发生。
+// 平时挂一枚青色小终端 favicon 作为常态(本站原本没有 favicon)。
+(function tabGhost() {
+  const TITLE = document.title;
+  const FINAL = '不要走。';
+  let corrodeTimer = 0;
+  let level = 0;
+  let icon = null;
+
+  // 画 favicon:深底青框小终端;recOn 时变成红框 + 红色录制点
+  function drawIcon(recOn) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const g = c.getContext('2d');
+    g.fillStyle = '#0a0c12';
+    g.fillRect(0, 0, 32, 32);
+    g.strokeStyle = recOn ? '#ff2b4a' : '#00f0ff';
+    g.lineWidth = 3;
+    g.strokeRect(3, 3, 26, 26);
+    if (recOn) {
+      g.fillStyle = '#ff2b4a';
+      g.beginPath();
+      g.arc(16, 16, 6, 0, Math.PI * 2);
+      g.fill();
+    } else {
+      g.fillStyle = '#00f0ff';
+      g.fillRect(8, 13, 16, 3);
+      g.fillRect(8, 19, 10, 3);
+    }
+    return c.toDataURL('image/png');
+  }
+
+  function corrode() {
+    level += 2 + Math.floor(Math.random() * 3);
+    if (level >= TITLE.length + 6) {
+      document.title = FINAL; // 停在这句话上,直到切回来
+      return;
+    }
+    document.title = scrambled(TITLE, 0, Math.min(level, TITLE.length));
+    corrodeTimer = setTimeout(corrode, 2200 + Math.random() * 900);
+  }
+
+  fxReady.then(() => {
+    if (!FX.tabGhost) return;
+    const iconNormal = drawIcon(false);
+    const iconRec = drawIcon(true);
+    icon = document.createElement('link');
+    icon.rel = 'icon';
+    icon.href = iconNormal;
+    document.head.appendChild(icon);
+
+    document.addEventListener('visibilitychange', () => {
+      clearTimeout(corrodeTimer);
+      if (document.hidden) {
+        corrodeTimer = setTimeout(() => {
+          icon.href = iconRec;
+          corrode();
+        }, 6000); // 切走 6s 后开始腐蚀,匆匆切走切回的人看不到
+      } else {
+        level = 0;
+        document.title = TITLE;
+        icon.href = iconNormal;
+      }
+    });
+  });
+})();
+
+// ---------- 19. 控制台彩蛋:PRTS 接管 ----------
+// 打开 DevTools 的访客(大概率是同行)看到的东西;
+// 开关关闭则回退为普通的一行构建信息。
+(function consoleEgg() {
+  const DIM = 'color:#61707f;font-size:12px;';
+  function buildLine() {
+    console.log(
+      '%cY5NEKO TERMINAL%c build 2026.07 · 源码: https://github.com/Y5neKO/y5neko.github.io',
+      'color:#050508;background:#00f0ff;font-size:14px;font-weight:bold;padding:2px 8px;',
+      'color:#61707f;font-size:12px;padding-left:8px;'
+    );
+  }
+  fxReady.then(() => {
+    if (!FX.consoleEgg) { buildLine(); return; }
+    console.log(
+      '%c ▪ PRTS %c PRELIMINARY RHODES ISLAND TERMINAL SYSTEM ',
+      'color:#050508;background:#00f0ff;font-size:13px;font-weight:bold;padding:3px 8px;',
+      'color:#00f0ff;background:#0a0c12;font-size:13px;padding:3px 10px;'
+    );
+    console.log(
+      '%c正在检查我吗,博士?%c这不属于你的权限。',
+      'color:#ff5c97;font-size:13px;font-weight:bold;',
+      DIM + 'padding-left:8px;'
+    );
+    console.log(
+      '%cWARN%c access: devtools session logged as evidence #' +
+        Math.random().toString(16).slice(2, 8),
+      'color:#ffb800;font-weight:bold;',
+      DIM + 'padding-left:6px;'
+    );
+    console.log(
+      '%c此页面的所有交互都在录制中。包括这一次。%c ● REC',
+      DIM,
+      'color:#ff2b4a;font-size:12px;font-weight:bold;padding-left:6px;'
+    );
+    console.log('');
+    buildLine();
+  });
+})();
+
+// ---------- 20. 她记得你:跨访问的记忆 ----------
+// localStorage 记录访问次数与上次来访时间;回访者会被日志点名,
+// 次数越多凝视越大、越频繁(§9.5 通过 gfxApi.visits 换算胆量),
+// 到第 5 次她开始在凝视台词里报出具体的次数。
+(function visitMemory() {
+  gfxApi.visits = 1;
+  fxReady.then(() => {
+    if (!FX.visitMemory) return;
+    let visits = 1;
+    let last = 0;
+    try {
+      last = parseInt(localStorage.getItem('y5_last_seen'), 10) || 0;
+      // 记忆只保留 30 分钟:超时没再来,计数清零重新认识;
+      // 30 分钟内的每次进来照常 +1 累积
+      const expired = !last || Date.now() - last > 30 * 60000;
+      visits = expired ? 1 : (parseInt(localStorage.getItem('y5_visits'), 10) || 0) + 1;
+      localStorage.setItem('y5_visits', visits);
+      localStorage.setItem('y5_last_seen', Date.now());
+    } catch (e) {
+      return; // 隐私模式等拿不到存储,当首次访问
+    }
+    gfxApi.visits = visits;
+    if (visits < 2) return; // 记忆里没有你,不点名
+    // 回访播报:等日志流跑起来再插,像常规巡检里混进来的点名
+    // 点名时记忆未过期,间隔必然在 30 分钟内
+    const agoText = Math.max(1, Math.round((Date.now() - last) / 60000)) + 'min';
+    setTimeout(() => {
+      if (!gfxApi.sysLine) return;
+      gfxApi.sysLine('WARN session: subject returned. visit count: ' + visits);
+      if (last) {
+        setTimeout(() => gfxApi.sysLine('session: last seen ' + agoText + ' ago. she noticed too'), 1700);
+      }
+    }, 6000 + Math.random() * 4000);
+  });
+})();
+
+// ---------- 21. 坏点:屏幕上的常亮像素 ----------
+// 每次会话随机 2~3 个 1~2px 的"坏像素"(必有一个品红),整个会话位置不动,
+// 压在所有图层之上——它坏在"屏幕"上,不在画面里。
+(function deadPixels() {
+  fxReady.then(() => {
+    if (!FX.deadPixels) return;
+    const COLORS = ['#ff3b3b', '#59ff59', '#f2f7ff'];
+    const n = 2 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement('div');
+      d.className = 'dead-pixel';
+      const size = Math.random() < 0.3 ? 2 : 1;
+      d.style.width = d.style.height = size + 'px';
+      d.style.left = (4 + Math.random() * 92).toFixed(2) + 'vw';
+      d.style.top = (6 + Math.random() * 86).toFixed(2) + 'vh';
+      d.style.background = i === 0 ? '#ff00ff' : COLORS[Math.floor(Math.random() * COLORS.length)];
+      document.body.appendChild(d);
+    }
+  });
+})();
+
+// ---------- 22. 复制被截获 ----------
+// 复制页面文字时,日志播报剪贴板被"镜像"——你的动作也是素材
+(function copyTrace() {
+  const LINES = [
+    'WARN clipboard: {n} bytes copied. mirror sent to remote observer',
+    'WARN clipboard: selection duplicated by third party',
+    'WARN clipboard: copy event witnessed. she kept a copy too',
+  ];
+  let lastCopyAt = 0;
+  fxReady.then(() => {
+    if (!FX.copyTrace) return;
+    document.addEventListener('copy', () => {
+      if (Date.now() - lastCopyAt < 8000) return; // 连续复制只报一次
+      lastCopyAt = Date.now();
+      const sel = String(window.getSelection() || '');
+      const bytes = new Blob([sel]).size;
+      const text = LINES[Math.floor(Math.random() * LINES.length)]
+        .replace('{n}', bytes || '?');
+      setTimeout(() => gfxApi.sysLine && gfxApi.sysLine(text), 350);
+    });
+  });
+})();
