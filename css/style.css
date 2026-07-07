@@ -1864,7 +1864,34 @@ html.fx-off-crt-modal .easter-inner {
 
   /* REC 标识保留但收小,避免压到内容 */
   #rec-osd { left: 14px; top: 64px; font-size: 16px; }
+  #viewers-osd { left: 14px; top: 88px; font-size: 0.6rem; }
 }
+
+/* ---------- 观看人数 OSD:永远是 2——你,和她 ---------- */
+#viewers-osd {
+  position: fixed;
+  left: 20px;
+  top: calc(72px + clamp(30px, 4.6vh, 50px));
+  z-index: 999;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  color: rgba(120, 135, 150, 0.75);
+  pointer-events: none;
+}
+
+html.fx-off-viewer-count #viewers-osd { display: none; }
+
+/* ---------- 断网失联:offlineSignal 挂 signal-lost ----------
+   噪点大幅加密、扫描线加深;REC 的失联显示由 JS 类侦听联动 */
+html.signal-lost .gfx-noise { opacity: 0.3; }
+html.signal-lost .gfx-scanlines { opacity: 0.8; }
+
+/* ---------- 久坐信号老化:sessionDecay 30/60 分钟两级 ---------- */
+html.signal-aged .gfx-noise { opacity: 0.1; }
+html.signal-aged .gfx-scanlines { opacity: 0.68; }
+html.signal-aged-2 .gfx-noise { opacity: 0.17; }
+html.signal-aged-2 .gfx-scanlines { opacity: 0.85; }
 
 /* ---------- 坏点:会话内固定的常亮像素 ---------- */
 /* 坏在"屏幕"上而不在画面里,所以压在包括噪点/切台在内的所有图层之上 */

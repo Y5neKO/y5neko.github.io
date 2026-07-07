@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NO SIGNAL</title>
+  <!-- 404 = 完整版死频道:访客敲错任何 URL,落进不存在的 CH-??。
+       自包含单文件(仅引用 /images/ghost2.jpg),不依赖主站 CSS/JS/config。
+       几秒倒计时后"被切回" CH-01(首页),点击/按键立即返回。 -->
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #010203;
+      font-family: "Cascadia Code", "JetBrains Mono", Consolas, ui-monospace, monospace;
+      color: #55636e;
+      cursor: pointer;
+    }
+
+    /* 信号深处的她:整屏铺满,压暗去色 */
+    .figure {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(1) brightness(0.3) contrast(1.2);
+      opacity: 0.45;
+    }
+
+    /* 噪点(纹理由 JS 生成注入) */
+    .noise {
+      position: fixed;
+      inset: -50%;
+      z-index: 1;
+      background-repeat: repeat;
+      opacity: 0.2;
+      animation: jiggle 0.12s steps(3) infinite;
+    }
+
+    @keyframes jiggle {
+      0%   { transform: translate(0, 0); }
+      25%  { transform: translate(-18%, 6%); }
+      50%  { transform: translate(9%, -12%); }
+      75%  { transform: translate(-6%, 14%); }
+      100% { transform: translate(12%, 3%); }
+    }
+
+    /* CRT 扫描线 */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, 0.22) 2px 4px);
+      pointer-events: none;
+    }
+
+    /* 左上:失联标识 */
+    .lost-badge {
+      position: fixed;
+      left: 20px;
+      top: 20px;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: clamp(16px, 2.6vh, 28px);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: #6b7a86;
+      text-shadow: -1.5px 0 rgba(255, 42, 109, 0.4), 1.5px 0 rgba(0, 240, 255, 0.4);
+    }
+
+    .lost-badge .dot {
+      width: 0.6em;
+      height: 0.6em;
+      border-radius: 50%;
+      background: #4a5560;
+    }
+
+    /* 居中:检验卡 OSD */
+    .osd {
+      position: fixed;
+      left: 50%;
+      top: 42%;
+      z-index: 3;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      letter-spacing: 0.18em;
+      white-space: nowrap;
+    }
+
+    .osd .ch {
+      font-size: clamp(56px, 14vh, 120px);
+      font-weight: 600;
+      color: #6b7a86;
+      text-shadow: -3px 0 rgba(255, 42, 109, 0.35), 3px 0 rgba(0, 240, 255, 0.35);
+      animation: ch-flicker 4s steps(1) infinite;
+    }
+
+    @keyframes ch-flicker {
+      0%, 92%, 100% { opacity: 1; }
+      93%, 95% { opacity: 0.35; }
+      94% { opacity: 0.8; }
+    }
+
+    .osd .label { margin-top: 0.5rem; font-size: clamp(12px, 1.8vh, 16px); }
+    .osd .meta { margin-top: 1.2rem; font-size: clamp(10px, 1.4vh, 13px); color: #3d4954; }
+
+    /* 左下:迷你日志,逐行打出 */
+    .log {
+      position: fixed;
+      left: 20px;
+      bottom: 20px;
+      z-index: 3;
+      font-size: 12px;
+      line-height: 1.9;
+      letter-spacing: 0.06em;
+      max-width: min(78vw, 560px);
+    }
+
+    .log .err { color: #ff4757; }
+    .log .her {
+      color: #ff5c97;
+      font-weight: 600;
+      text-shadow: 0 0 8px rgba(255, 92, 151, 0.5), 0 0 14px rgba(0, 240, 255, 0.2);
+    }
+
+    /* 右下:切回倒计时 */
+    .back {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 3;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: #6b7a86;
+      border: 1px solid rgba(107, 122, 134, 0.4);
+      background: rgba(1, 2, 3, 0.6);
+      padding: 0.4rem 0.8rem;
+    }
+
+    .back b { color: #00f0ff; font-weight: 600; }
+
+    @media (max-width: 600px) {
+      .osd { white-space: normal; }
+      .log { bottom: 64px; }
+    }
+  </style>
+</head>
+<body>
+  <img class="figure" src="/images/ghost2.jpg" alt="">
+  <div class="noise" id="noise"></div>
+  <div class="scanlines"></div>
+
+  <div class="lost-badge"><span class="dot"></span>SIGNAL LOST</div>
+
+  <div class="osd">
+    <div class="ch">CH-??</div>
+    <div class="label">UNREGISTERED CHANNEL</div>
+    <div class="meta">SOURCE ──── ▪ AUDIO MUTED ▪ ??:??:??</div>
+  </div>
+
+  <div class="log" id="log"></div>
+  <div class="back">RETURNING TO CH-01 IN <b id="count">8</b></div>
+
+  <script>
+    // 噪点纹理:一小块随机灰度 canvas 平铺
+    (function () {
+      var c = document.createElement('canvas');
+      c.width = c.height = 128;
+      var g = c.getContext('2d');
+      var img = g.createImageData(128, 128);
+      for (var i = 0; i < img.data.length; i += 4) {
+        var v = Math.floor(Math.random() * 255);
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+        img.data[i + 3] = 255;
+      }
+      g.putImageData(img, 0, 0);
+      document.getElementById('noise').style.backgroundImage = 'url(' + c.toDataURL() + ')';
+    })();
+
+    // favicon:红色录制点
+    (function () {
+      var c = document.createElement('canvas');
+      c.width = c.height = 32;
+      var g = c.getContext('2d');
+      g.fillStyle = '#0a0c12';
+      g.fillRect(0, 0, 32, 32);
+      g.strokeStyle = '#ff2b4a';
+      g.lineWidth = 3;
+      g.strokeRect(3, 3, 26, 26);
+      g.fillStyle = '#ff2b4a';
+      g.beginPath();
+      g.arc(16, 16, 6, 0, Math.PI * 2);
+      g.fill();
+      var l = document.createElement('link');
+      l.rel = 'icon';
+      l.href = c.toDataURL('image/png');
+      document.head.appendChild(l);
+    })();
+
+    // 迷你日志逐行打出
+    (function () {
+      var LINES = [
+        ['ERR route: requested channel not found', 'err'],
+        ['trace: path does not resolve to any indexed frame', ''],
+        ['this channel does not exist. neither should you be here.', 'her'],
+      ];
+      var log = document.getElementById('log');
+      var i = 0;
+      (function next() {
+        if (i >= LINES.length) return;
+        var div = document.createElement('div');
+        if (LINES[i][1]) div.className = LINES[i][1];
+        div.textContent = LINES[i][0];
+        log.appendChild(div);
+        i++;
+        setTimeout(next, 900 + Math.random() * 500);
+      })();
+    })();
+
+    // 倒计时切回 CH-01;点击/按键立即返回
+    (function () {
+      var n = 8;
+      var el = document.getElementById('count');
+      function go() { location.href = '/'; }
+      var timer = setInterval(function () {
+        n--;
+        el.textContent = n;
+        if (n <= 0) { clearInterval(timer); go(); }
+      }, 1000);
+      addEventListener('click', go);
+      addEventListener('keydown', go);
+    })();
+  </script>
+</body>
+</html>

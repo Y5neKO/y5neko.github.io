@@ -32,7 +32,12 @@
     "crossFeed        串台:翻页切台小概率误入不存在的死频道 CH-??(黑屏噪点检验卡,深处偶有人影)再被抢回(依赖 monitorCut)",
     "deadPixels       坏点:每次会话随机 2~3 个常亮像素(必有一个品红),压在所有画面之上",
     "copyTrace        复制被截获:复制页面文字时日志播报剪贴板被镜像",
-    "glitchAudio      故障音效:爆发/切台的电流杂音 + 凝视低鸣,WebAudio 合成;唯一默认关闭项,访客首次点击页面后才会出声,音量很低"
+    "glitchAudio      故障音效:爆发/切台的电流杂音 + 凝视低鸣,WebAudio 合成;唯一默认关闭项,访客首次点击页面后才会出声,音量很低",
+    "offlineSignal    断网失联:掉线时全页 NO SIGNAL(噪点加密,REC 失联),恢复时日志提示'她没走'",
+    "twinSession      多开分身:同站再开标签页时互相点名,后开的依次编为 CAM-02/CAM-03…,中途关掉不重编,全部关掉后剩下的恢复 REC",
+    "lostFiles        故障掉落文件:数据块爆发后终端里多出 her.log 等不该存在的文件,读后即焚——cat 一次就消失",
+    "viewerCount      观看人数 OSD:REC 下方常驻 VIEWERS: 2——你,和她",
+    "sessionDecay     久坐信号老化:页面开着 30/60 分钟后噪点扫描线逐级变粗,日志提醒休息"
   ],
   "debug": false,
   "effects": {
@@ -66,6 +71,11 @@
     "crossFeed": true,
     "deadPixels": true,
     "copyTrace": true,
-    "glitchAudio": false
+    "glitchAudio": false,
+    "offlineSignal": true,
+    "twinSession": true,
+    "lostFiles": true,
+    "viewerCount": true,
+    "sessionDecay": true
   }
 }

@@ -37,6 +37,11 @@ const FX = {
   deadPixels: true,       // 坏点:每次会话随机 2~3 个常亮像素,压在所有画面之上
   copyTrace: true,        // 复制被截获:复制文字时日志播报剪贴板被镜像
   glitchAudio: false,     // 故障音效:爆发/切台电流杂音 + 凝视低鸣(唯一默认关闭项)
+  offlineSignal: true,    // 断网失联:offline 时全页 NO SIGNAL,恢复时"她没走"
+  twinSession: true,      // 多开分身:后开页面依次编为 CAM-02/03…,全关恢复 REC
+  lostFiles: true,        // 故障掉落文件:数据块爆发后终端里多出 her.log 等,读后即焚
+  viewerCount: true,      // 观看人数 OSD:永远是 2——你,和她
+  sessionDecay: true,     // 久坐信号老化:30/60 分钟后噪点扫描线渐粗 + 日志提醒
 };
 
 // 特效间共享:乱码字符集 / 正在乱码中的文本节点(防互相踩)
@@ -519,6 +524,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
   const recLabel = rec.querySelector('.rec-label');
   const recTime = rec.querySelector('.rec-time');
   const bootAt = Date.now();
+  let recName = 'REC'; // 双开分身时会被改成 CAM-02
   let recLost = false;
   let recLostTimer = 0;
 
@@ -558,22 +564,28 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
         recTime.textContent = '--:--:--';
       } else {
         recLostTimer = setInterval(() => {
-          recLabel.textContent = scrambled('REC', 0, 3);
+          recLabel.textContent = scrambled(recName, 0, recName.length);
           const t = recClock();
           recTime.textContent = scrambled(t, Math.floor(Math.random() * 5), t.length);
         }, 90);
       }
     } else {
-      recLabel.textContent = 'REC';
+      recLabel.textContent = recName;
       recTime.textContent = recClock();
     }
   }
 
+  // 双开分身等场景改写录制标识名(如 CAM-02)
+  gfxApi.setRecName = function setRecName(name) {
+    recName = name;
+    if (!recLost) recLabel.textContent = name;
+  };
+
   function initRec() {
     recTick();
     if (reduced) return; // 减少动效时故障爆发不会触发,只保留走秒
-    // 所有故障变体都通过 <html> 类驱动,侦听类变化即可联动
-    const GLITCH_RE = /(?:^|\s)(?:glitching(?:-\d)?|ghosting(?:-gaze)?)(?:\s|$)/;
+    // 所有故障变体都通过 <html> 类驱动,侦听类变化即可联动;断网失联同样计入
+    const GLITCH_RE = /(?:^|\s)(?:glitching(?:-\d)?|ghosting(?:-gaze)?|signal-lost)(?:\s|$)/;
     new MutationObserver(() => recSetLost(GLITCH_RE.test(document.documentElement.className)))
       .observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   }
@@ -717,6 +729,12 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       if (!name) { print('cat: 缺少文件名,用法 cat <file>', 'out-err'); return; }
       if (files[name] !== undefined) {
         files[name].split('\n').forEach((l) => print('<span class="out-green">' + esc(l) + '</span>'));
+        // 故障掉落的文件读后即焚:cat 完的那一刻从文件系统里消失
+        if (ghostFiles.has(name)) {
+          delete files[name];
+          ghostFiles.delete(name);
+          if (gfxApi.onLostFileRead) gfxApi.onLostFileRead(name);
+        }
       } else if (dirLookup(name)) {
         print('cat: ' + esc(name) + ': Is a directory', 'out-err');
       } else {
@@ -826,6 +844,14 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
     if (sel && !sel.isCollapsed) return;
     input.focus();
   });
+
+  // 故障掉落的文件(lostFiles):挂进虚拟文件系统,ls/cat/Tab 补全都能摸到;
+  // 读后即焚——cat 一次后由上面的 cat 逻辑删除,再读就是 No such file
+  const ghostFiles = new Set();
+  gfxApi.dropFile = function dropFile(name, content) {
+    files[name] = content;
+    ghostFiles.add(name);
+  };
 
   // 开机欢迎语
   print('<span class="out-cyan">Y5neKO-terminal v3.0.0</span> <span class="out-dim">(kernel 6.9.0-glitch)</span>');
@@ -1109,6 +1135,8 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       setTimeout(() => root.classList.remove('glitching-3'), 300);
       // 一部分崩坏块不是噪声,而是"露出"屏幕后面的她
       if (gfxApi.ghost && Math.random() < 0.55) gfxApi.ghost(1);
+      // 崩坏偶尔往终端里漏出不该存在的文件
+      if (gfxApi.dropLostFile) gfxApi.dropLostFile();
     }
   }
 
@@ -1860,6 +1888,7 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
       ['凝视', () => gfxApi.ghost && gfxApi.ghost(2, true)],
       ['终端入侵', () => gfxApi.termGhost && gfxApi.termGhost()],
       ['串台', () => gfxApi.crossFeed && gfxApi.crossFeed()],
+      ['掉落文件', () => gfxApi.dropLostFile && gfxApi.dropLostFile(true)],
       ['切台 +1', () => {
         const pages = document.querySelectorAll('.hero, .section');
         if (!gfxApi.channelJump || !pages.length) return;
@@ -2273,5 +2302,230 @@ const fxReady = fetch('config.json', { cache: 'no-store' })
         cutOn = on;
       }).observe(cut, { attributes: true, attributeFilter: ['class'] });
     }
+  });
+})();
+
+// ---------- 24. 断网失联:NO SIGNAL ----------
+// 断网时全页进入失联状态:<html> 挂 signal-lost(噪点加密、REC 变
+// NO SIGNAL——REC 的类侦听正则已包含它);恢复联网时,她提醒你:
+// 断网期间她也一直在,因为她从来不是从网络来的。
+(function offlineSignal() {
+  fxReady.then(() => {
+    if (!FX.offlineSignal) return;
+    const root = document.documentElement;
+    window.addEventListener('offline', () => {
+      root.classList.add('signal-lost');
+      if (gfxApi.sysLine) gfxApi.sysLine('ERR uplink: connection lost. switching to local loop');
+    });
+    window.addEventListener('online', () => {
+      root.classList.remove('signal-lost');
+      if (gfxApi.sysLine) {
+        gfxApi.sysLine('uplink: connection restored');
+        setTimeout(() => gfxApi.sysLine('WARN uplink: she never left. she is not from the network'), 1600);
+      }
+    });
+  });
+})();
+
+// ---------- 25. 双开分身:另一个你 ----------
+// BroadcastChannel 侦测同站的其他标签页,给每一路信号编号:
+// 第 1 路保持 REC,后开的依次编为 CAM-02 / CAM-03 / …。
+// hello/here/bye 协议:here 携带自己的编号,新页收集在线编号后取
+// 最大值 +1;同时打开的竞态按随机 id 大小让位。中间某路关掉不重编
+// (真监控也不会重编机位);对端全部离开后恢复 REC,可重新协商。
+(function twinSession() {
+  if (!('BroadcastChannel' in window)) return;
+  fxReady.then(() => {
+    if (!FX.twinSession) return;
+    const bc = new BroadcastChannel('y5neko-sys');
+    const myId = Math.random().toString(36).slice(2);
+    const peers = new Map();   // id -> 对方编号(hello 阶段未知,记 0)
+    const greeted = new Set(); // 给我发过 hello 的对端:和我同期打开,竞态判定用
+    let joinTimer = 0;
+    let byeTimer = 0;
+
+    // 编号存 sessionStorage(每标签页独立、刷新存活):刷新拿回原编号,
+    // 不再重新协商,否则多开时每刷一次编号就凭空 +1
+    let myNum = 1;
+    let established = false; // 已持有编号(含 REC):不参与入网协商
+    try {
+      const saved = sessionStorage.getItem('y5_cam_num');
+      if (saved !== null) {
+        myNum = parseInt(saved, 10) || 1;
+        established = true;
+      }
+    } catch (e) { /* 拿不到存储就每次当新页协商 */ }
+
+    const camName = (n) => (n === 1 ? 'REC' : 'CAM-' + String(n).padStart(2, '0'));
+
+    function saveNum(n) {
+      myNum = n;
+      established = true;
+      try { sessionStorage.setItem('y5_cam_num', n); } catch (e) { /* 同上 */ }
+      if (gfxApi.setRecName) gfxApi.setRecName(camName(n));
+    }
+
+    function takeNum(n) {
+      saveNum(n);
+      if (n > 1 && gfxApi.sysLine) {
+        gfxApi.sysLine('WARN session: duplicate viewer detected. this feed reassigned to ' + camName(n));
+      }
+    }
+
+    // 刷新回来的页面静默恢复原编号(不再播报"duplicate viewer")
+    if (established && myNum > 1 && gfxApi.setRecName) gfxApi.setRecName(camName(myNum));
+
+    bc.onmessage = (e) => {
+      const m = e.data || {};
+      if (!m.id || m.id === myId) return;
+      if (m.t === 'hello') {
+        // 有新页面开了:回应它(带上自己的编号,指名道姓),并在自己这边点名;
+        // 刷新中的页面回来了,取消"只剩自己"的待复位
+        clearTimeout(byeTimer);
+        peers.set(m.id, 0);
+        greeted.add(m.id);
+        // 以现编号回应即是对编号的声明:落盘,这样 REC 页刷新也不会丢身份
+        if (!established) saveNum(myNum);
+        bc.postMessage({ t: 'here', id: myId, num: myNum, to: m.id });
+        if (gfxApi.sysLine) gfxApi.sysLine('WARN session: another session opened. active feeds: ' + (peers.size + 1));
+      } else if (m.t === 'here') {
+        // 广播总线上人人都收得到:编号信息照单全收,
+        // 但只有被指名的页面才把它当作对自己 hello 的应答去协商编号
+        peers.set(m.id, m.num || 0);
+        if (m.to !== myId) return;
+        // 稍等一拍收集齐所有在线编号,再决定自己的
+        clearTimeout(joinTimer);
+        joinTimer = setTimeout(() => {
+          if (myNum !== 1 || established) return; // 已持有编号(含刷新恢复)就不再变
+          const known = [...peers.entries()].filter(([, n]) => n >= 1);
+          if (!known.length) return;
+          const top = Math.max(...known.map(([, n]) => n));
+          // 存在真正的前辈(没给我发过 hello 的 1 号,开得比我早)→ 让位
+          const hasElder = known.some(([id, n]) => n === 1 && !greeted.has(id));
+          if (top > 1 || hasElder) {
+            takeNum(top + 1);
+            return;
+          }
+          // 全是同期打开的竞态(双方都还是 1 号):id 最大的让位,守住的落盘 1 号
+          const rivals = known.filter(([, n]) => n === 1).map(([id]) => id);
+          if (rivals.every((id) => id < myId)) takeNum(2);
+          else saveNum(1);
+        }, 350);
+      } else if (m.t === 'bye') {
+        if (!peers.delete(m.id)) return;
+        greeted.delete(m.id);
+        if (peers.size === 0) {
+          // 只剩自己了:消抖 2.5s 再复位——刷新中的页面会先 bye 再 hello,
+          // 它回来时上面的 hello 分支会取消这个定时器,避免误报误复位
+          clearTimeout(byeTimer);
+          byeTimer = setTimeout(() => {
+            if (peers.size > 0) return;
+            if (myNum !== 1) saveNum(1);
+            if (gfxApi.sysLine) gfxApi.sysLine('WARN session: all other sessions ended. you are the only one again');
+          }, 2500);
+        }
+      }
+    };
+
+    window.addEventListener('pagehide', () => bc.postMessage({ t: 'bye', id: myId }));
+    // 从 bfcache 返回时脚本不重跑,重新打招呼恢复协商(编号保留)
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) bc.postMessage({ t: 'hello', id: myId });
+    });
+    bc.postMessage({ t: 'hello', id: myId });
+    // 孤儿检查:带着 CAM 编号回来(如恢复已关闭的标签页)却无人应答,
+    // 说明全场只有自己,静默收回 REC
+    setTimeout(() => {
+      if (peers.size === 0 && myNum > 1) saveNum(1);
+    }, 1200);
+  });
+})();
+
+// ---------- 26. 故障掉落的文件 ----------
+// 数据块崩坏(runVariant 变体2)偶尔往终端的虚拟文件系统里漏出
+// 不该存在的文件:ls 能看到、cat 有内容——读后即焚,cat 完那一刻
+// 就从文件系统里消失;日志同步报告文件的出现与自毁。
+(function lostFiles() {
+  function junk(n) {
+    let s = '';
+    for (let i = 0; i < n; i++) s += randGlyph();
+    return s;
+  }
+
+  const FILES = [
+    {
+      name: 'her.log',
+      make: () => [
+        junk(34), junk(28),
+        '[SIGNAL INTERRUPTED]',
+        junk(31),
+        '——你看到这行的时候,我也在看。',
+        junk(22),
+      ].join('\n'),
+    },
+    {
+      name: 'record_0001.rec',
+      make: () => [
+        junk(40),
+        'subject: PRIESTESS',
+        'status: [REDACTED]',
+        junk(36), junk(24),
+        '不准忘记我。',
+      ].join('\n'),
+    },
+    {
+      name: 'do_not_open.txt',
+      make: () => [
+        '你还是打开了。',
+        junk(30),
+        'viewer count: 2 (verified)',
+        junk(18),
+      ].join('\n'),
+    },
+  ];
+
+  let activeName = null; // 当前躺在文件系统里等着被读的文件
+  let lastGoneAt = 0;
+
+  // force = 调试面板手动触发,跳过概率与冷却
+  gfxApi.dropLostFile = function dropLostFile(force) {
+    if (!FX.lostFiles || !gfxApi.dropFile) return;
+    if (!force) {
+      if (activeName) return;                        // 已有一个在等着被读
+      if (Date.now() - lastGoneAt < 120000) return;  // 上个被读走 2 分钟内不再掉
+      if (Math.random() > 0.3) return;
+    }
+    const f = FILES[Math.floor(Math.random() * FILES.length)];
+    activeName = f.name;
+    gfxApi.dropFile(f.name, f.make());
+    if (gfxApi.sysLine) gfxApi.sysLine('WARN fs: unindexed file appeared in ~ (' + f.name + ')');
+  };
+
+  // 终端 cat 完成后回调:文件已自毁
+  gfxApi.onLostFileRead = function onLostFileRead(name) {
+    if (name === activeName) activeName = null;
+    lastGoneAt = Date.now();
+    if (gfxApi.sysLine) {
+      setTimeout(() => gfxApi.sysLine('WARN fs: ' + name + ' self-erased after read. it was meant for you only'), 800);
+    }
+  };
+})();
+
+// ---------- 27. 久坐信号老化 ----------
+// 页面开着超过 30 / 60 分钟,信号逐级"老化":噪点变密、扫描线加深,
+// 日志提醒该休息了——既是氛围,也是真的健康提示。
+(function sessionDecay() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  fxReady.then(() => {
+    if (!FX.sessionDecay) return;
+    const root = document.documentElement;
+    setTimeout(() => {
+      root.classList.add('signal-aged');
+      if (gfxApi.sysLine) gfxApi.sysLine('WARN signal: degrading. you have been watching for 30 minutes');
+    }, 30 * 60000);
+    setTimeout(() => {
+      root.classList.add('signal-aged-2');
+      if (gfxApi.sysLine) gfxApi.sysLine('WARN signal: heavy degradation. rest your eyes, doctor');
+    }, 60 * 60000);
   });
 })();
