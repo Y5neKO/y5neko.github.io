@@ -1426,14 +1426,22 @@ html.glitching-2 .gfx-rollbar {
 }
 
 html.glitching-3 .gfx-block {
-  animation: block-corrupt 0.28s steps(3) both;
+  animation: block-corrupt 0.28s linear both;
 }
 
+/* 出现:一条过曝亮缝硬切展开;驻留:错位跳动;消失:压扁成亮线熄灭。
+   相邻百分比的跳变 = 硬切帧,拉开的区段 = 真实位移(收束压扁) */
 @keyframes block-corrupt {
-  0%   { transform: translateX(var(--bx, 6px)); opacity: 0.72; }
-  40%  { transform: translateX(calc(var(--bx, 6px) * -0.7)) translateY(2px); opacity: 0.6; }
-  70%  { transform: translateX(calc(var(--bx, 6px) * 0.4)); opacity: 0.5; }
-  100% { transform: none; opacity: 0; }
+  0%   { opacity: 0.95; transform: translateX(var(--bx, 6px)) scaleY(0.15); filter: brightness(2.8); }
+  10%  { opacity: 0.95; transform: translateX(var(--bx, 6px)) scaleY(0.15); filter: brightness(2.8); }
+  11%  { opacity: 0.75; transform: translateX(calc(var(--bx, 6px) * -0.7)); filter: none; }
+  38%  { opacity: 0.75; transform: translateX(calc(var(--bx, 6px) * -0.7)); }
+  39%  { opacity: 0.62; transform: translateX(calc(var(--bx, 6px) * 0.4)) translateY(2px); }
+  68%  { opacity: 0.62; transform: translateX(calc(var(--bx, 6px) * 0.4)) translateY(2px); }
+  69%  { opacity: 0.7; transform: none; }
+  84%  { opacity: 0.7; transform: none; filter: none; }
+  93%  { opacity: 0.95; transform: scaleY(0.1); filter: brightness(3); }
+  100% { opacity: 0; transform: scaleY(0.04); filter: brightness(3); }
 }
 
 /* ===== 数据块里的"她"(ghostGlimpse) =====
@@ -1445,8 +1453,18 @@ html.glitching-3 .gfx-block {
   inset: 0;
 }
 
-/* 人影碎片:内容由 JS 对位采样,这里只管质感——宏块边缘的品红/青色散镶边 */
+/* 人影碎片:内容由 JS 对位采样,这里只管质感——宏块边缘的品红/青色散镶边。
+   filter 拆成 --shard-filter(基础质感,坏块另有一套)× --fb(动画亮度),
+   关键帧只动 --fb,过曝闪帧不会盖掉坏块的反相。
+   @property 注册让 --fb 可插值(收束亮线的亮度渐变);不支持则退化为硬切 */
+@property --fb {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
 .gfx-shard {
+  --shard-filter: saturate(0.78) contrast(1.08) brightness(1.04);
   position: absolute;
   opacity: 0;
   background-repeat: no-repeat;
@@ -1454,33 +1472,62 @@ html.glitching-3 .gfx-block {
     2px 0 0 rgba(255, 42, 109, 0.22),
     -2px 0 0 rgba(0, 240, 255, 0.22),
     inset 0 0 0 1px rgba(0, 240, 255, 0.1);
-  filter: saturate(0.78) contrast(1.08) brightness(1.04);
+  filter: var(--shard-filter) brightness(var(--fb, 1));
 }
 
 /* 混在人影里的坏块:反相冷调,和宏块崩坏同一质感 */
 .gfx-shard.shard-broken {
-  filter: invert(0.85) hue-rotate(150deg) saturate(0.6) contrast(1.2);
+  --shard-filter: invert(0.85) hue-rotate(150deg) saturate(0.6) contrast(1.2);
 }
 
-html.ghosting .gfx-shard { animation: shard-glimpse 0.65s steps(5) both; }
-html.ghosting-gaze .gfx-shard { animation: shard-gaze 2.2s steps(16) both; }
+html.ghosting .gfx-shard { animation: shard-glimpse 0.65s linear both; }
+html.ghosting-gaze .gfx-shard { animation: shard-gaze 2.2s linear both; }
 
-/* 惊鸿一瞥:闪两下就散 */
+/* 惊鸿一瞥:过曝亮缝硬切显形 → 短暂驻留(单帧错位)→ 撕成两条 → 压扁成亮线熄灭 */
 @keyframes shard-glimpse {
-  0%   { opacity: 0.95; transform: translateX(var(--gx, 4px)); }
-  55%  { opacity: 0.6; transform: translateX(calc(var(--gx, 4px) * -0.6)); }
-  100% { opacity: 0; transform: none; }
+  0%   { opacity: 0; clip-path: inset(44% 0 44% 0); transform: translateX(var(--gx, 4px)) scaleY(0.6); --fb: 2.2; }
+  4%   { opacity: 1; clip-path: inset(44% 0 44% 0); transform: translateX(var(--gx, 4px)) scaleY(0.6); --fb: 2.2; }
+  12%  { opacity: 1; clip-path: inset(44% 0 44% 0); transform: translateX(var(--gx, 4px)) scaleY(0.6); --fb: 2.2; }
+  13%  { opacity: 0.95; clip-path: inset(16% 0 6% 0); transform: translateX(calc(var(--gx, 4px) * -0.6)); --fb: 1.3; }
+  22%  { opacity: 0.95; clip-path: inset(16% 0 6% 0); transform: translateX(calc(var(--gx, 4px) * -0.6)); --fb: 1.3; }
+  23%  { opacity: 0.95; clip-path: inset(0); transform: none; --fb: 1; }
+  58%  { opacity: 0.95; clip-path: inset(0); transform: none; --fb: 1; }
+  59%  { opacity: 0.8; clip-path: inset(0); transform: translateX(calc(var(--gx, 4px) * 0.5)); }
+  64%  { opacity: 0.8; clip-path: inset(0); transform: translateX(calc(var(--gx, 4px) * 0.5)); }
+  65%  { opacity: 0.9; clip-path: inset(0); transform: none; }
+  78%  { opacity: 0.9; clip-path: inset(0); transform: none; --fb: 1; }
+  79%  { opacity: 0.85; clip-path: inset(0 0 52% 0); transform: translateX(var(--gx, 4px)); --fb: 1.3; }
+  86%  { opacity: 0.85; clip-path: inset(0 0 52% 0); transform: translateX(var(--gx, 4px)); }
+  87%  { opacity: 0.85; clip-path: inset(52% 0 0 0); transform: translateX(calc(var(--gx, 4px) * -1)); }
+  92%  { opacity: 0.85; clip-path: inset(52% 0 0 0); transform: translateX(calc(var(--gx, 4px) * -1)); }
+  93%  { opacity: 1; clip-path: inset(0); transform: scaleY(0.08); --fb: 2.6; }
+  100% { opacity: 0; clip-path: inset(0); transform: scaleY(0.03); --fb: 2.6; }
 }
 
-/* 凝视:闪烁着显形,停住,再碎开 */
+/* 凝视:亮缝 → 隔行残缺 → 半透错位帧 → 锁定驻留(偶发单帧缺损/错位,
+   不再大幅呼吸)→ 撕成上下两条错位 → 收束成亮线熄灭 */
 @keyframes shard-gaze {
-  0%   { opacity: 0; transform: translateX(var(--gx, 4px)); }
-  8%   { opacity: 1; transform: translateX(calc(var(--gx, 4px) * -0.5)); }
-  16%  { opacity: 0.5; }
-  26%  { opacity: 1; transform: translateX(var(--gx, 4px)); }
-  72%  { opacity: 0.92; transform: none; }
-  86%  { opacity: 0.4; transform: translateX(calc(var(--gx, 4px) * 0.8)); }
-  100% { opacity: 0; transform: none; }
+  0%    { opacity: 0; clip-path: inset(46% 0 46% 0); transform: translateX(var(--gx, 4px)); --fb: 2.4; }
+  2%    { opacity: 1; clip-path: inset(46% 0 46% 0); transform: translateX(var(--gx, 4px)); --fb: 2.4; }
+  4.5%  { opacity: 1; clip-path: inset(46% 0 46% 0); transform: translateX(var(--gx, 4px)); --fb: 2.4; }
+  5%    { opacity: 1; clip-path: inset(8% 0 34% 0); transform: translateX(calc(var(--gx, 4px) * -0.7)); --fb: 1.6; }
+  7.5%  { opacity: 1; clip-path: inset(8% 0 34% 0); transform: translateX(calc(var(--gx, 4px) * -0.7)); --fb: 1.6; }
+  8%    { opacity: 0.55; clip-path: inset(0); transform: translateX(calc(var(--gx, 4px) * 0.5)); --fb: 1.2; }
+  10%   { opacity: 0.55; clip-path: inset(0); transform: translateX(calc(var(--gx, 4px) * 0.5)); --fb: 1.2; }
+  10.5% { opacity: 1; clip-path: inset(0); transform: none; --fb: 1; }
+  30%   { opacity: 1; clip-path: inset(0); transform: none; }
+  31%   { opacity: 0.85; clip-path: inset(0); transform: translateX(calc(var(--gx, 4px) * -0.4)); }
+  33%   { opacity: 1; clip-path: inset(0); transform: none; }
+  55%   { opacity: 1; clip-path: inset(0); transform: none; }
+  56%   { opacity: 0.9; clip-path: inset(0 0 30% 0); transform: none; }
+  58%   { opacity: 1; clip-path: inset(0); transform: none; }
+  84%   { opacity: 1; clip-path: inset(0); transform: none; --fb: 1; }
+  85%   { opacity: 0.9; clip-path: inset(0 0 48% 0); transform: translateX(var(--gx, 4px)); --fb: 1.3; }
+  89%   { opacity: 0.9; clip-path: inset(0 0 48% 0); transform: translateX(var(--gx, 4px)); }
+  89.5% { opacity: 0.9; clip-path: inset(48% 0 0 0); transform: translateX(calc(var(--gx, 4px) * -1.2)); }
+  93%   { opacity: 0.9; clip-path: inset(48% 0 0 0); transform: translateX(calc(var(--gx, 4px) * -1.2)); }
+  94%   { opacity: 1; clip-path: inset(0); transform: scaleY(0.07); --fb: 2.8; }
+  100%  { opacity: 0; clip-path: inset(0); transform: scaleY(0.02); --fb: 2.8; }
 }
 
 
